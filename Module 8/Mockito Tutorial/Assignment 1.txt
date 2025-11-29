@@ -1,0 +1,207 @@
+package com.example.service;
+
+import com.example.model.User;
+import com.example.model.Order;
+import com.example.model.PaymentResult;
+import com.example.repository.UserRepository;
+import com.example.repository.OrderRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class UserServiceTest {
+    
+    @Mock
+    private UserRepository userRepository;
+    
+    @Mock
+    private OrderRepository orderRepository;
+    
+    @Mock
+    private PaymentService paymentService;
+    
+    @Mock
+    private NotificationService notificationService;
+    
+    @InjectMocks
+    private UserService userService;
+    
+    @Captor
+    private ArgumentCaptor<User> userCaptor;
+    
+    @Captor
+    private ArgumentCaptor<Order> orderCaptor;
+    
+    private User testUser;
+    private final Long USER_ID = 1L;
+    private final String USER_EMAIL = "test@example.com";
+    private final String USERNAME = "testuser";
+    
+    @BeforeEach
+    void setUp() {
+        testUser = new User(USER_ID, USERNAME, USER_EMAIL, 1000.0);
+    }
+    
+    @Test
+    @DisplayName("Should create user successfully")
+    void createUser_Success() {
+        // Arrange
+        when(userRepository.existsByEmail(USER_EMAIL)).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        
+        // Act
+        User result = userService.createUser(USERNAME, USER_EMAIL, 1000.0);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(USER_ID, result.getId());
+        assertEquals(USER_EMAIL, result.getEmail());
+        
+        // Verify interactions
+        verify(userRepository).existsByEmail(USER_EMAIL);
+        verify(userRepository).save(userCaptor.capture());
+        verify(notificationService).sendWelcomeEmail(testUser);
+        
+        User savedUser = userCaptor.getValue();
+        assertEquals(USERNAME, savedUser.getUsername());
+        assertEquals(1000.0, savedUser.getBalance(), 0.001);
+    }
+    
+    @Test
+    @DisplayName("Should throw exception when email already exists")
+    void createUser_EmailExists_ThrowsException() {
+        // Arrange
+        when(userRepository.existsByEmail(USER_EMAIL)).thenReturn(true);
+        
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> userService.createUser(USERNAME, USER_EMAIL, 1000.0)
+        );
+        
+        assertEquals("Email already exists: " + USER_EMAIL, exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+        verify(notificationService, never()).sendWelcomeEmail(any(User.class));
+    }
+    
+    @Test
+    @DisplayName("Should process user order successfully")
+    void processUserOrder_Success() {
+        // Arrange
+        double orderAmount = 150.0;
+        String creditCard = "1234567890123456";
+        
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+        when(paymentService.processPayment(orderAmount, creditCard))
+            .thenReturn(new PaymentResult(true, "TXN123", "Success", orderAmount));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order order = invocation.getArgument(0);
+            order.setId(1L);
+            return order;
+        });
+        
+        // Act
+        boolean result = userService.processUserOrder(USER_ID, orderAmount, creditCard);
+        
+        // Assert
+        assertTrue(result);
+        
+        // Verify interactions
+        verify(userRepository).findById(USER_ID);
+        verify(paymentService).processPayment(orderAmount, creditCard);
+        verify(orderRepository).save(orderCaptor.capture());
+        verify(notificationService).sendPaymentConfirmation(USER_EMAIL, orderAmount);
+        
+        Order savedOrder = orderCaptor.getValue();
+        assertEquals(USER_ID, savedOrder.getUserId());
+        assertEquals(orderAmount, savedOrder.getAmount(), 0.001);
+    }
+    
+    @Test
+    @DisplayName("Should fail order processing when payment fails")
+    void processUserOrder_PaymentFails_ReturnsFalse() {
+        // Arrange
+        double orderAmount = 150.0;
+        String creditCard = "1234567890123456";
+        
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+        when(paymentService.processPayment(orderAmount, creditCard))
+            .thenReturn(new PaymentResult(false, null, "Insufficient funds", orderAmount));
+        
+        // Act
+        boolean result = userService.processUserOrder(USER_ID, orderAmount, creditCard);
+        
+        // Assert
+        assertFalse(result);
+        
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(notificationService, never()).sendPaymentConfirmation(anyString(), anyDouble());
+    }
+    
+    @Test
+    @DisplayName("Should calculate total spent correctly")
+    void getUserTotalSpent_CalculatesCorrectly() {
+        // Arrange
+        List<Order> orders = Arrays.asList(
+            new Order(1L, USER_ID, 100.0),
+            new Order(2L, USER_ID, 200.0),
+            new Order(3L, USER_ID, 50.0)
+        );
+        
+        when(orderRepository.findByUserId(USER_ID)).thenReturn(orders);
+        
+        // Act
+        double totalSpent = userService.getUserTotalSpent(USER_ID);
+        
+        // Assert
+        assertEquals(350.0, totalSpent, 0.001);
+        verify(orderRepository).findByUserId(USER_ID);
+    }
+    
+    @Test
+    @DisplayName("Should update user balance")
+    void updateUserBalance_Success() {
+        // Arrange
+        double updateAmount = 500.0;
+        User updatedUser = new User(USER_ID, USERNAME, USER_EMAIL, 1500.0);
+        
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenReturn(updatedUser);
+        
+        // Act
+        User result = userService.updateUserBalance(USER_ID, updateAmount);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(1500.0, result.getBalance(), 0.001);
+        
+        verify(userRepository).save(userCaptor.capture());
+        User savedUser = userCaptor.getValue();
+        assertEquals(1500.0, savedUser.getBalance(), 0.001);
+    }
+    
+    @Test
+    @DisplayName("Should throw exception when user not found for balance update")
+    void updateUserBalance_UserNotFound_ThrowsException() {
+        // Arrange
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
+        
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, 
+            () -> userService.updateUserBalance(USER_ID, 500.0));
+        
+        verify(userRepository, never()).save(any(User.class));
+    }
+}

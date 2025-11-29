@@ -1,0 +1,687 @@
+// Main class to demonstrate composition
+public class CompositionDemo {
+    public static void main(String[] args) {
+        System.out.println("=== COMPOSITION DEMONSTRATION ===\n");
+        
+        // Example 1: Basic Composition with Car and Engine
+        demonstrateCarComposition();
+        
+        System.out.println("\n" + "=".repeat(50) + "\n");
+        
+        // Example 2: University with nested departments
+        demonstrateUniversityComposition();
+        
+        System.out.println("\n" + "=".repeat(50) + "\n");
+        
+        // Example 3: Library with books and authors
+        demonstrateLibraryComposition();
+    }
+    
+    // Example 1: Car with Engine composition
+    public static void demonstrateCarComposition() {
+        System.out.println("EXAMPLE 1: CAR WITH ENGINE COMPOSITION");
+        
+        // Create an Engine object
+        Engine carEngine = new Engine("V6", 3.5, 280, "Petrol");
+        
+        // Create a Car with the Engine (Composition)
+        Car myCar = new Car("Toyota", "Camry", 2023, "Red", carEngine);
+        
+        // Display car information using getters
+        System.out.println("Car Details:");
+        System.out.println("Brand: " + myCar.getBrand());
+        System.out.println("Model: " + myCar.getModel());
+        System.out.println("Year: " + myCar.getYear());
+        System.out.println("Color: " + myCar.getColor());
+        
+        // Access nested Engine object using getter
+        Engine engine = myCar.getEngine();
+        System.out.println("Engine Type: " + engine.getEngineType());
+        System.out.println("Engine Capacity: " + engine.getCapacity() + "L");
+        System.out.println("Horsepower: " + engine.getHorsepower());
+        System.out.println("Fuel Type: " + engine.getFuelType());
+        
+        // Use business methods that work with composed objects
+        System.out.println("\nCar Performance Info:");
+        System.out.println(myCar.getCarInfo());
+        System.out.println("Engine Details: " + engine.getEngineDetails());
+        
+        // Modify nested object using setters
+        System.out.println("\n--- Modifying Engine using Setters ---");
+        engine.setHorsepower(300);
+        engine.setFuelType("Hybrid");
+        System.out.println("Updated Engine: " + engine.getEngineDetails());
+        
+        // Replace the entire engine
+        Engine newEngine = new Engine("V8", 5.0, 400, "Premium");
+        myCar.setEngine(newEngine);
+        System.out.println("After engine replacement: " + myCar.getCarInfo());
+    }
+    
+    // Example 2: University with Departments and Students
+    public static void demonstrateUniversityComposition() {
+        System.out.println("EXAMPLE 2: UNIVERSITY WITH DEPARTMENT COMPOSITION");
+        
+        // Create Students
+        Student student1 = new Student("S001", "Alice Johnson", 20, "Computer Science");
+        Student student2 = new Student("S002", "Bob Smith", 22, "Computer Science");
+        Student student3 = new Student("S003", "Carol Davis", 21, "Mathematics");
+        
+        // Create Departments with Students
+        Department csDepartment = new Department("CS", "Computer Science");
+        csDepartment.addStudent(student1);
+        csDepartment.addStudent(student2);
+        
+        Department mathDepartment = new Department("MATH", "Mathematics");
+        mathDepartment.addStudent(student3);
+        
+        // Create University with Departments
+        University university = new University("Tech University", "123 Education Blvd");
+        university.addDepartment(csDepartment);
+        university.addDepartment(mathDepartment);
+        
+        // Display university information using getters
+        System.out.println("University: " + university.getName());
+        System.out.println("Address: " + university.getAddress());
+        
+        System.out.println("\nDepartments and Students:");
+        for (Department dept : university.getDepartments()) {
+            System.out.println("- " + dept.getDepartmentName() + " (" + dept.getDepartmentCode() + ")");
+            for (Student student : dept.getStudents()) {
+                System.out.println("  * " + student.getName() + " (ID: " + student.getStudentId() + ")");
+            }
+        }
+        
+        // Modify nested objects
+        System.out.println("\n--- Modifying Student Information ---");
+        student1.setAge(21);
+        student1.setMajor("Software Engineering");
+        System.out.println("Updated Student: " + student1.getStudentInfo());
+        
+        // Add new department
+        Department physicsDept = new Department("PHY", "Physics");
+        university.addDepartment(physicsDept);
+        System.out.println("\nAfter adding Physics department:");
+        System.out.println("Total departments: " + university.getDepartments().length);
+    }
+    
+    // Example 3: Library with Books and Authors
+    public static void demonstrateLibraryComposition() {
+        System.out.println("EXAMPLE 3: LIBRARY WITH BOOKS AND AUTHORS");
+        
+        // Create Authors
+        Author author1 = new Author("J.K. Rowling", "British", 1965);
+        Author author2 = new Author("George Orwell", "British", 1903);
+        Author author3 = new Author("Isaac Asimov", "American", 1920);
+        
+        // Create Books with Authors
+        Book book1 = new Book("Harry Potter", "978-0439708180", 309, author1);
+        Book book2 = new Book("1984", "978-0451524935", 328, author2);
+        Book book3 = new Book("Foundation", "978-0553293357", 255, author3);
+        
+        // Create Library with Books
+        Library library = new Library("City Central Library", "456 Library Street");
+        library.addBook(book1);
+        library.addBook(book2);
+        library.addBook(book3);
+        
+        // Display library information
+        System.out.println("Library: " + library.getName());
+        System.out.println("Location: " + library.getLocation());
+        
+        System.out.println("\nBooks in Library:");
+        for (Book book : library.getBooks()) {
+            System.out.println("- " + book.getTitle());
+            System.out.println("  ISBN: " + book.getIsbn());
+            System.out.println("  Pages: " + book.getPages());
+            System.out.println("  Author: " + book.getAuthor().getName());
+            System.out.println("  Author Nationality: " + book.getAuthor().getNationality());
+        }
+        
+        // Modify nested objects
+        System.out.println("\n--- Modifying Book Information ---");
+        book1.setPages(350);
+        author1.setNationality("Scottish");
+        System.out.println("Updated Book: " + book1.getBookInfo());
+    }
+}
+
+// ==================== EXAMPLE 1: CAR AND ENGINE ====================
+
+/**
+ * Car class that composes an Engine object
+ * Demonstrates: Car HAS-A Engine (Composition)
+ */
+class Car {
+    // Basic attributes
+    private String brand;
+    private String model;
+    private int year;
+    private String color;
+    
+    // Composition: Car HAS-A Engine
+    private Engine engine;
+    
+    // Constructor
+    public Car(String brand, String model, int year, String color, Engine engine) {
+        this.brand = brand;
+        this.model = model;
+        this.year = year;
+        this.color = color;
+        this.engine = engine;
+    }
+    
+    // Getter and Setter methods for basic attributes
+    public String getBrand() {
+        return brand;
+    }
+    
+    public void setBrand(String brand) {
+        if (brand != null && !brand.trim().isEmpty()) {
+            this.brand = brand;
+        }
+    }
+    
+    public String getModel() {
+        return model;
+    }
+    
+    public void setModel(String model) {
+        if (model != null && !model.trim().isEmpty()) {
+            this.model = model;
+        }
+    }
+    
+    public int getYear() {
+        return year;
+    }
+    
+    public void setYear(int year) {
+        if (year >= 1886 && year <= 2030) { // Valid car years
+            this.year = year;
+        }
+    }
+    
+    public String getColor() {
+        return color;
+    }
+    
+    public void setColor(String color) {
+        if (color != null && !color.trim().isEmpty()) {
+            this.color = color;
+        }
+    }
+    
+    // Getter and Setter for composed Engine object
+    public Engine getEngine() {
+        return engine;
+    }
+    
+    public void setEngine(Engine engine) {
+        if (engine != null) {
+            this.engine = engine;
+        }
+    }
+    
+    // Business methods that use the composed Engine
+    public String getCarInfo() {
+        return String.format("%s %s %d (%s) with %s engine", 
+                           brand, model, year, color, engine.getEngineType());
+    }
+    
+    public double calculateFuelEfficiency() {
+        // Simple calculation based on engine capacity and horsepower
+        return (engine.getCapacity() * 100) / engine.getHorsepower();
+    }
+    
+    public boolean isHighPerformance() {
+        return engine.getHorsepower() > 300;
+    }
+}
+
+/**
+ * Engine class - composed object in Car
+ */
+class Engine {
+    private String engineType;
+    private double capacity; // in liters
+    private int horsepower;
+    private String fuelType;
+    
+    // Constructor
+    public Engine(String engineType, double capacity, int horsepower, String fuelType) {
+        this.engineType = engineType;
+        this.capacity = capacity;
+        this.horsepower = horsepower;
+        this.fuelType = fuelType;
+    }
+    
+    // Getter and Setter methods
+    public String getEngineType() {
+        return engineType;
+    }
+    
+    public void setEngineType(String engineType) {
+        if (engineType != null && !engineType.trim().isEmpty()) {
+            this.engineType = engineType;
+        }
+    }
+    
+    public double getCapacity() {
+        return capacity;
+    }
+    
+    public void setCapacity(double capacity) {
+        if (capacity > 0 && capacity <= 10.0) {
+            this.capacity = capacity;
+        }
+    }
+    
+    public int getHorsepower() {
+        return horsepower;
+    }
+    
+    public void setHorsepower(int horsepower) {
+        if (horsepower > 0 && horsepower <= 2000) {
+            this.horsepower = horsepower;
+        }
+    }
+    
+    public String getFuelType() {
+        return fuelType;
+    }
+    
+    public void setFuelType(String fuelType) {
+        if (fuelType != null && !fuelType.trim().isEmpty()) {
+            this.fuelType = fuelType;
+        }
+    }
+    
+    // Business methods
+    public String getEngineDetails() {
+        return String.format("%s %.1fL %dHP %s", engineType, capacity, horsepower, fuelType);
+    }
+    
+    public boolean isElectric() {
+        return "Electric".equalsIgnoreCase(fuelType);
+    }
+    
+    public double getPowerToWeightRatio(double carWeight) {
+        return carWeight > 0 ? horsepower / carWeight : 0;
+    }
+}
+
+// ==================== EXAMPLE 2: UNIVERSITY COMPOSITION ====================
+
+/**
+ * University class that composes Department objects
+ * Demonstrates: University HAS-A Department (Composition)
+ */
+class University {
+    private String name;
+    private String address;
+    private Department[] departments;
+    
+    public University(String name, String address) {
+        this.name = name;
+        this.address = address;
+        this.departments = new Department[0];
+    }
+    
+    // Getter and Setter methods
+    public String getName() {
+        return name;
+    }
+    
+    public void setName(String name) {
+        if (name != null && !name.trim().isEmpty()) {
+            this.name = name;
+        }
+    }
+    
+    public String getAddress() {
+        return address;
+    }
+    
+    public void setAddress(String address) {
+        if (address != null && !address.trim().isEmpty()) {
+            this.address = address;
+        }
+    }
+    
+    // Getter and Setter for composed Department array
+    public Department[] getDepartments() {
+        return departments.clone(); // Return copy to maintain encapsulation
+    }
+    
+    public void setDepartments(Department[] departments) {
+        if (departments != null) {
+            this.departments = departments.clone();
+        }
+    }
+    
+    // Methods to manage departments
+    public void addDepartment(Department department) {
+        if (department != null) {
+            Department[] newDepartments = new Department[departments.length + 1];
+            System.arraycopy(departments, 0, newDepartments, 0, departments.length);
+            newDepartments[departments.length] = department;
+            departments = newDepartments;
+        }
+    }
+    
+    public int getTotalStudents() {
+        int total = 0;
+        for (Department dept : departments) {
+            total += dept.getStudents().length;
+        }
+        return total;
+    }
+}
+
+/**
+ * Department class that composes Student objects
+ */
+class Department {
+    private String departmentCode;
+    private String departmentName;
+    private Student[] students;
+    
+    public Department(String departmentCode, String departmentName) {
+        this.departmentCode = departmentCode;
+        this.departmentName = departmentName;
+        this.students = new Student[0];
+    }
+    
+    // Getter and Setter methods
+    public String getDepartmentCode() {
+        return departmentCode;
+    }
+    
+    public void setDepartmentCode(String departmentCode) {
+        if (departmentCode != null && !departmentCode.trim().isEmpty()) {
+            this.departmentCode = departmentCode;
+        }
+    }
+    
+    public String getDepartmentName() {
+        return departmentName;
+    }
+    
+    public void setDepartmentName(String departmentName) {
+        if (departmentName != null && !departmentName.trim().isEmpty()) {
+            this.departmentName = departmentName;
+        }
+    }
+    
+    // Getter and Setter for composed Student array
+    public Student[] getStudents() {
+        return students.clone(); // Return copy
+    }
+    
+    public void setStudents(Student[] students) {
+        if (students != null) {
+            this.students = students.clone();
+        }
+    }
+    
+    // Methods to manage students
+    public void addStudent(Student student) {
+        if (student != null) {
+            Student[] newStudents = new Student[students.length + 1];
+            System.arraycopy(students, 0, newStudents, 0, students.length);
+            newStudents[students.length] = student;
+            students = newStudents;
+        }
+    }
+}
+
+/**
+ * Student class
+ */
+class Student {
+    private String studentId;
+    private String name;
+    private int age;
+    private String major;
+    
+    public Student(String studentId, String name, int age, String major) {
+        this.studentId = studentId;
+        this.name = name;
+        this.age = age;
+        this.major = major;
+    }
+    
+    // Getter and Setter methods
+    public String getStudentId() {
+        return studentId;
+    }
+    
+    public void setStudentId(String studentId) {
+        if (studentId != null && !studentId.trim().isEmpty()) {
+            this.studentId = studentId;
+        }
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public void setName(String name) {
+        if (name != null && !name.trim().isEmpty()) {
+            this.name = name;
+        }
+    }
+    
+    public int getAge() {
+        return age;
+    }
+    
+    public void setAge(int age) {
+        if (age >= 16 && age <= 100) {
+            this.age = age;
+        }
+    }
+    
+    public String getMajor() {
+        return major;
+    }
+    
+    public void setMajor(String major) {
+        if (major != null && !major.trim().isEmpty()) {
+            this.major = major;
+        }
+    }
+    
+    public String getStudentInfo() {
+        return String.format("%s (ID: %s, Age: %d, Major: %s)", name, studentId, age, major);
+    }
+}
+
+// ==================== EXAMPLE 3: LIBRARY COMPOSITION ====================
+
+/**
+ * Library class that composes Book objects
+ * Demonstrates: Library HAS-A Book (Composition)
+ */
+class Library {
+    private String name;
+    private String location;
+    private Book[] books;
+    
+    public Library(String name, String location) {
+        this.name = name;
+        this.location = location;
+        this.books = new Book[0];
+    }
+    
+    // Getter and Setter methods
+    public String getName() {
+        return name;
+    }
+    
+    public void setName(String name) {
+        if (name != null && !name.trim().isEmpty()) {
+            this.name = name;
+        }
+    }
+    
+    public String getLocation() {
+        return location;
+    }
+    
+    public void setLocation(String location) {
+        if (location != null && !location.trim().isEmpty()) {
+            this.location = location;
+        }
+    }
+    
+    // Getter and Setter for composed Book array
+    public Book[] getBooks() {
+        return books.clone(); // Return copy
+    }
+    
+    public void setBooks(Book[] books) {
+        if (books != null) {
+            this.books = books.clone();
+        }
+    }
+    
+    // Methods to manage books
+    public void addBook(Book book) {
+        if (book != null) {
+            Book[] newBooks = new Book[books.length + 1];
+            System.arraycopy(books, 0, newBooks, 0, books.length);
+            newBooks[books.length] = book;
+            books = newBooks;
+        }
+    }
+    
+    public Book findBookByIsbn(String isbn) {
+        for (Book book : books) {
+            if (book.getIsbn().equals(isbn)) {
+                return book;
+            }
+        }
+        return null;
+    }
+}
+
+/**
+ * Book class that composes Author object
+ * Demonstrates: Book HAS-A Author (Composition)
+ */
+class Book {
+    private String title;
+    private String isbn;
+    private int pages;
+    private Author author; // Composition: Book HAS-A Author
+    
+    public Book(String title, String isbn, int pages, Author author) {
+        this.title = title;
+        this.isbn = isbn;
+        this.pages = pages;
+        this.author = author;
+    }
+    
+    // Getter and Setter methods
+    public String getTitle() {
+        return title;
+    }
+    
+    public void setTitle(String title) {
+        if (title != null && !title.trim().isEmpty()) {
+            this.title = title;
+        }
+    }
+    
+    public String getIsbn() {
+        return isbn;
+    }
+    
+    public void setIsbn(String isbn) {
+        if (isbn != null && !isbn.trim().isEmpty()) {
+            this.isbn = isbn;
+        }
+    }
+    
+    public int getPages() {
+        return pages;
+    }
+    
+    public void setPages(int pages) {
+        if (pages > 0) {
+            this.pages = pages;
+        }
+    }
+    
+    // Getter and Setter for composed Author object
+    public Author getAuthor() {
+        return author;
+    }
+    
+    public void setAuthor(Author author) {
+        if (author != null) {
+            this.author = author;
+        }
+    }
+    
+    public String getBookInfo() {
+        return String.format("\"%s\" by %s (%d pages, ISBN: %s)", 
+                           title, author.getName(), pages, isbn);
+    }
+    
+    public boolean isLongBook() {
+        return pages > 400;
+    }
+}
+
+/**
+ * Author class - composed object in Book
+ */
+class Author {
+    private String name;
+    private String nationality;
+    private int birthYear;
+    
+    public Author(String name, String nationality, int birthYear) {
+        this.name = name;
+        this.nationality = nationality;
+        this.birthYear = birthYear;
+    }
+    
+    // Getter and Setter methods
+    public String getName() {
+        return name;
+    }
+    
+    public void setName(String name) {
+        if (name != null && !name.trim().isEmpty()) {
+            this.name = name;
+        }
+    }
+    
+    public String getNationality() {
+        return nationality;
+    }
+    
+    public void setNationality(String nationality) {
+        if (nationality != null && !nationality.trim().isEmpty()) {
+            this.nationality = nationality;
+        }
+    }
+    
+    public int getBirthYear() {
+        return birthYear;
+    }
+    
+    public void setBirthYear(int birthYear) {
+        if (birthYear > 1500 && birthYear <= 2023) {
+            this.birthYear = birthYear;
+        }
+    }
+    
+    public String getAuthorInfo() {
+        return String.format("%s (%s, born %d)", name, nationality, birthYear);
+    }
+}

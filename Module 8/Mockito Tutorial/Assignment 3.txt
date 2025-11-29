@@ -1,0 +1,368 @@
+package com.example.service;
+
+import com.example.exception.InvalidArrayException;
+import org.junit.*;
+import org.junit.jupiter.api.Assertions;
+
+import java.util.Arrays;
+
+import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+public class ArrayOperationsTest {
+    
+    private ArrayOperations arrayOperations;
+    private static int testCounter;
+    private int[] testArray;
+    private int[] sortedArray;
+    private int[] emptyArray;
+    private int[] singleElementArray;
+    private int[] arrayWithDuplicates;
+    
+    // @BeforeClass - runs once before all tests
+    @BeforeClass
+    public static void setUpClass() {
+        testCounter = 0;
+        System.out.println("=== Starting ArrayOperations Test Suite ===");
+        System.out.println("Test Suite Setup Complete");
+    }
+    
+    // @AfterClass - runs once after all tests
+    @AfterClass
+    public static void tearDownClass() {
+        System.out.println("=== ArrayOperations Test Suite Completed ===");
+        System.out.println("Total tests executed: " + testCounter);
+    }
+    
+    // @Before - runs before each test method
+    @Before
+    public void setUp() {
+        arrayOperations = new ArrayOperations();
+        testArray = new int[]{5, 2, 8, 1, 9, 3, 7, 4, 6};
+        sortedArray = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9};
+        emptyArray = new int[]{};
+        singleElementArray = new int[]{42};
+        arrayWithDuplicates = new int[]{1, 2, 2, 3, 4, 4, 4, 5};
+        
+        testCounter++;
+        System.out.println("\nSetting up for test #" + testCounter);
+    }
+    
+    // @After - runs after each test method
+    @After
+    public void tearDown() {
+        System.out.println("Completed test #" + testCounter);
+        // Clean up resources if any
+        testArray = null;
+        sortedArray = null;
+    }
+    
+    // Test sortArray method
+    @Test
+    public void testSortArray_NormalArray() {
+        System.out.println("Testing sortArray with normal array");
+        
+        int[] result = arrayOperations.sortArray(testArray);
+        
+        // Using assertArrayEquals to compare arrays
+        assertArrayEquals("Array should be sorted in ascending order", 
+                         sortedArray, result);
+        
+        // Verify the original array is not modified
+        assertFalse("Original array should not be modified",
+                   Arrays.equals(testArray, result));
+    }
+    
+    @Test
+    public void testSortArray_AlreadySorted() {
+        System.out.println("Testing sortArray with already sorted array");
+        
+        int[] result = arrayOperations.sortArray(sortedArray);
+        
+        assertArrayEquals("Already sorted array should remain sorted",
+                         sortedArray, result);
+    }
+    
+    @Test
+    public void testSortArray_EmptyArray() {
+        System.out.println("Testing sortArray with empty array");
+        
+        Exception exception = assertThrows(InvalidArrayException.class, 
+            () -> arrayOperations.sortArray(emptyArray));
+        
+        assertEquals("Exception message should match",
+                    "Array cannot be null or empty", exception.getMessage());
+    }
+    
+    @Test
+    public void testSortArray_NullArray() {
+        System.out.println("Testing sortArray with null array");
+        
+        Exception exception = assertThrows(InvalidArrayException.class, 
+            () -> arrayOperations.sortArray(null));
+        
+        assertEquals("Exception message should match",
+                    "Array cannot be null or empty", exception.getMessage());
+    }
+    
+    // Test findMax method
+    @Test
+    public void testFindMax_NormalArray() {
+        System.out.println("Testing findMax with normal array");
+        
+        int max = arrayOperations.findMax(testArray);
+        
+        assertEquals("Maximum value should be 9", 9, max);
+    }
+    
+    @Test
+    public void testFindMax_SingleElement() {
+        System.out.println("Testing findMax with single element array");
+        
+        int max = arrayOperations.findMax(singleElementArray);
+        
+        assertEquals("Maximum value should be 42", 42, max);
+    }
+    
+    @Test
+    public void testFindMax_EmptyArray() {
+        System.out.println("Testing findMax with empty array");
+        
+        Exception exception = assertThrows(InvalidArrayException.class, 
+            () -> arrayOperations.findMax(emptyArray));
+        
+        assertEquals("Exception message should match",
+                    "Array cannot be null or empty", exception.getMessage());
+    }
+    
+    // Test findMin method
+    @Test
+    public void testFindMin_NormalArray() {
+        System.out.println("Testing findMin with normal array");
+        
+        int min = arrayOperations.findMin(testArray);
+        
+        assertEquals("Minimum value should be 1", 1, min);
+    }
+    
+    // Test reverseArray method
+    @Test
+    public void testReverseArray_NormalArray() {
+        System.out.println("Testing reverseArray with normal array");
+        
+        int[] reversed = arrayOperations.reverseArray(testArray);
+        int[] expected = {6, 4, 7, 3, 9, 1, 8, 2, 5};
+        
+        assertArrayEquals("Array should be reversed", expected, reversed);
+    }
+    
+    @Test
+    public void testReverseArray_EmptyArray() {
+        System.out.println("Testing reverseArray with empty array");
+        
+        int[] reversed = arrayOperations.reverseArray(emptyArray);
+        
+        assertArrayEquals("Empty array should remain empty", 
+                         emptyArray, reversed);
+    }
+    
+    @Test
+    public void testReverseArray_NullArray() {
+        System.out.println("Testing reverseArray with null array");
+        
+        Exception exception = assertThrows(InvalidArrayException.class, 
+            () -> arrayOperations.reverseArray(null));
+        
+        assertEquals("Exception message should match",
+                    "Array cannot be null", exception.getMessage());
+    }
+    
+    // Test calculateAverage method
+    @Test
+    public void testCalculateAverage_NormalArray() {
+        System.out.println("Testing calculateAverage with normal array");
+        
+        double average = arrayOperations.calculateAverage(testArray);
+        double expected = (5+2+8+1+9+3+7+4+6) / 9.0;
+        
+        assertEquals("Average should be calculated correctly", 
+                    expected, average, 0.001);
+    }
+    
+    // Test linearSearch method
+    @Test
+    public void testLinearSearch_ElementFound() {
+        System.out.println("Testing linearSearch when element is found");
+        
+        int index = arrayOperations.linearSearch(testArray, 7);
+        
+        assertEquals("Element 7 should be found at index 6", 6, index);
+    }
+    
+    @Test
+    public void testLinearSearch_ElementNotFound() {
+        System.out.println("Testing linearSearch when element is not found");
+        
+        int index = arrayOperations.linearSearch(testArray, 100);
+        
+        assertEquals("Element 100 should not be found", -1, index);
+    }
+    
+    // Test removeDuplicates method
+    @Test
+    public void testRemoveDuplicates_ArrayWithDuplicates() {
+        System.out.println("Testing removeDuplicates with array containing duplicates");
+        
+        int[] result = arrayOperations.removeDuplicates(arrayWithDuplicates);
+        int[] expected = {1, 2, 3, 4, 5};
+        
+        assertArrayEquals("Duplicates should be removed", expected, result);
+    }
+    
+    // Test mergeArrays method
+    @Test
+    public void testMergeArrays_TwoArrays() {
+        System.out.println("Testing mergeArrays with two arrays");
+        
+        int[] array1 = {1, 2, 3};
+        int[] array2 = {4, 5, 6};
+        int[] result = arrayOperations.mergeArrays(array1, array2);
+        int[] expected = {1, 2, 3, 4, 5, 6};
+        
+        assertArrayEquals("Arrays should be merged correctly", expected, result);
+    }
+    
+    // Test isSorted method
+    @Test
+    public void testIsSorted_SortedArray() {
+        System.out.println("Testing isSorted with sorted array");
+        
+        boolean result = arrayOperations.isSorted(sortedArray);
+        
+        assertTrue("Sorted array should return true", result);
+    }
+    
+    @Test
+    public void testIsSorted_UnsortedArray() {
+        System.out.println("Testing isSorted with unsorted array");
+        
+        boolean result = arrayOperations.isSorted(testArray);
+        
+        assertFalse("Unsorted array should return false", result);
+    }
+    
+    // Test rotateLeft method
+    @Test
+    public void testRotateLeft_NormalArray() {
+        System.out.println("Testing rotateLeft with normal array");
+        
+        int[] array = {1, 2, 3, 4, 5};
+        int[] result = arrayOperations.rotateLeft(array, 2);
+        int[] expected = {3, 4, 5, 1, 2};
+        
+        assertArrayEquals("Array should be rotated left by 2 positions", 
+                         expected, result);
+    }
+    
+    @Test
+    public void testRotateLeft_ZeroPositions() {
+        System.out.println("Testing rotateLeft with zero positions");
+        
+        int[] result = arrayOperations.rotateLeft(testArray, 0);
+        
+        assertArrayEquals("Array should remain unchanged when rotating 0 positions",
+                         testArray, result);
+    }
+    
+    // Test generateRandomArray method
+    @Test
+    public void testGenerateRandomArray_ValidSize() {
+        System.out.println("Testing generateRandomArray with valid size");
+        
+        int size = 5;
+        int min = 1;
+        int max = 10;
+        
+        int[] result = arrayOperations.generateRandomArray(size, min, max);
+        
+        assertEquals("Array should have correct size", size, result.length);
+        
+        // Check all elements are within range
+        for (int num : result) {
+            assertTrue("Element should be within range", num >= min && num <= max);
+        }
+    }
+    
+    @Test
+    public void testGenerateRandomArray_ZeroSize() {
+        System.out.println("Testing generateRandomArray with zero size");
+        
+        int[] result = arrayOperations.generateRandomArray(0, 1, 10);
+        
+        assertArrayEquals("Zero size should return empty array", 
+                         emptyArray, result);
+    }
+    
+    @Test
+    public void testGenerateRandomArray_NegativeSize() {
+        System.out.println("Testing generateRandomArray with negative size");
+        
+        Exception exception = assertThrows(InvalidArrayException.class, 
+            () -> arrayOperations.generateRandomArray(-1, 1, 10));
+        
+        assertEquals("Exception message should match",
+                    "Array size cannot be negative", exception.getMessage());
+    }
+    
+    // Comprehensive test with multiple assertions
+    @Test
+    public void testMultipleOperations() {
+        System.out.println("Testing multiple array operations together");
+        
+        // Create test array
+        int[] array = {10, 5, 8, 2, 7};
+        
+        // Test sort
+        int[] sorted = arrayOperations.sortArray(array);
+        assertTrue("Array should be sorted after sort operation", 
+                  arrayOperations.isSorted(sorted));
+        
+        // Test max and min
+        assertEquals("Max should be correct", 10, arrayOperations.findMax(array));
+        assertEquals("Min should be correct", 2, arrayOperations.findMin(array));
+        
+        // Test reverse
+        int[] reversed = arrayOperations.reverseArray(array);
+        int[] reversedThenReversed = arrayOperations.reverseArray(reversed);
+        assertArrayEquals("Double reverse should return original array",
+                         array, reversedThenReversed);
+        
+        // Test average
+        double average = arrayOperations.calculateAverage(array);
+        assertEquals("Average should be correct", 6.4, average, 0.001);
+    }
+    
+    // Test edge cases
+    @Test
+    public void testEdgeCases() {
+        System.out.println("Testing edge cases");
+        
+        // Single element array
+        int[] sortedSingle = arrayOperations.sortArray(singleElementArray);
+        assertArrayEquals("Single element array should remain unchanged",
+                         singleElementArray, sortedSingle);
+        
+        assertEquals("Max and min should be same for single element",
+                    arrayOperations.findMax(singleElementArray),
+                    arrayOperations.findMin(singleElementArray));
+        
+        // Empty array operations that are allowed
+        int[] reversedEmpty = arrayOperations.reverseArray(emptyArray);
+        assertArrayEquals("Empty array reverse should be empty",
+                         emptyArray, reversedEmpty);
+        
+        int[] noDuplicates = arrayOperations.removeDuplicates(emptyArray);
+        assertArrayEquals("Empty array remove duplicates should be empty",
+                         emptyArray, noDuplicates);
+    }
+}

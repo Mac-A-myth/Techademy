@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<book>
+    <title>The Hobbit</title>
+    <author>J.R.R. Tolkien</author>
+    <publication_year>1937</publication_year>
+    <genre>Fantasy</genre>
+</book>

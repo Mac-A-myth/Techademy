@@ -1,0 +1,16 @@
+[
+  {
+    "company": "Tech Corp",
+    "founded": 2005,
+    "employees": 250,
+    "location": "San Francisco",
+    "services": ["Web Development", "Cloud Solutions", "Consulting"]
+  },
+  {
+    "company": "Data Systems",
+    "founded": 2010,
+    "employees": 150,
+    "location": "New York",
+    "services": ["Data Analytics", "AI Solutions", "Big Data"]
+  }
+]

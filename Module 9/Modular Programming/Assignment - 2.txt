@@ -1,0 +1,953 @@
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * Main class to demonstrate nested classes benefits and challenges
+ */
+public class NestedClassesDemo {
+    public static void main(String[] args) {
+        System.out.println("=== NESTED CLASSES DEMONSTRATION ===\n");
+        
+        // Example 1: E-commerce System with Order Processing
+        demonstrateEcommerceSystem();
+        
+        System.out.println("\n" + "=".repeat(60) + "\n");
+        
+        // Example 2: Bank Account System
+        demonstrateBankAccountSystem();
+        
+        System.out.println("\n" + "=".repeat(60) + "\n");
+        
+        // Example 3: Social Media Post with Comments
+        demonstrateSocialMediaSystem();
+        
+        System.out.println("\n" + "=".repeat(60) + "\n");
+        
+        // Example 4: University Course Management
+        demonstrateUniversitySystem();
+    }
+    
+    // Example 1: E-commerce System
+    public static void demonstrateEcommerceSystem() {
+        System.out.println("EXAMPLE 1: E-COMMERCE ORDER PROCESSING SYSTEM");
+        
+        // Create products
+        EcommerceStore.Product laptop = new EcommerceStore.Product("L001", "Gaming Laptop", 1299.99, 10);
+        EcommerceStore.Product mouse = new EcommerceStore.Product("M001", "Wireless Mouse", 49.99, 50);
+        EcommerceStore.Product keyboard = new EcommerceStore.Product("K001", "Mechanical Keyboard", 89.99, 25);
+        
+        // Create customer
+        EcommerceStore.Customer customer = new EcommerceStore.Customer("C001", "John Doe", "john@email.com");
+        
+        // Create order
+        EcommerceStore.Order order = new EcommerceStore.Order("ORD001", customer);
+        
+        // Add items to order
+        order.addItem(laptop, 1);
+        order.addItem(mouse, 2);
+        order.addItem(keyboard, 1);
+        
+        // Process order
+        EcommerceStore.OrderProcessor processor = new EcommerceStore.OrderProcessor();
+        EcommerceStore.OrderProcessor.ProcessResult result = processor.processOrder(order);
+        
+        System.out.println("Order Processing Result:");
+        System.out.println("Success: " + result.isSuccess());
+        System.out.println("Message: " + result.getMessage());
+        System.out.println("Total Amount: $" + result.getTotalAmount());
+        
+        // Display order details using nested class methods
+        System.out.println("\nOrder Details:");
+        System.out.println(order.getOrderSummary());
+        
+        // Demonstrate iterator pattern with OrderItems
+        System.out.println("\nOrder Items:");
+        for (EcommerceStore.Order.OrderItem item : order.getItems()) {
+            System.out.println(" - " + item.getItemSummary());
+        }
+    }
+    
+    // Example 2: Bank Account System
+    public static void demonstrateBankAccountSystem() {
+        System.out.println("EXAMPLE 2: BANK ACCOUNT MANAGEMENT SYSTEM");
+        
+        // Create bank account
+        BankAccount account = new BankAccount("ACC123456", "Alice Smith", 1000.0);
+        
+        // Perform transactions
+        account.deposit(500.0, "Salary");
+        account.withdraw(200.0, "Groceries");
+        account.deposit(100.0, "Freelance work");
+        account.withdraw(50.0, "Coffee");
+        
+        // Display account information
+        System.out.println("Account Holder: " + account.getAccountHolder());
+        System.out.println("Account Number: " + account.getAccountNumber());
+        System.out.println("Current Balance: $" + account.getBalance());
+        
+        // Display transaction history using nested class
+        System.out.println("\nTransaction History:");
+        for (BankAccount.Transaction transaction : account.getTransactionHistory()) {
+            System.out.println(transaction.getTransactionDetails());
+        }
+        
+        // Generate statement for last 5 transactions
+        BankAccount.AccountStatement statement = account.generateStatement(5);
+        System.out.println("\nRecent Account Statement:");
+        System.out.println(statement.getStatementSummary());
+        
+        // Demonstrate transaction filtering
+        System.out.println("\nDeposit Transactions:");
+        List<BankAccount.Transaction> deposits = account.getTransactionsByType(BankAccount.TransactionType.DEPOSIT);
+        for (BankAccount.Transaction deposit : deposits) {
+            System.out.println(" + " + deposit.getTransactionDetails());
+        }
+    }
+    
+    // Example 3: Social Media System
+    public static void demonstrateSocialMediaSystem() {
+        System.out.println("EXAMPLE 3: SOCIAL MEDIA POST SYSTEM");
+        
+        // Create a social media post
+        SocialMediaPost post = new SocialMediaPost("P001", "Java Developer", 
+            "Just learned about nested classes in Java! They're really powerful for organizing code. #Java #Programming");
+        
+        // Add reactions
+        post.addReaction("user1", SocialMediaPost.ReactionType.LIKE);
+        post.addReaction("user2", SocialMediaPost.ReactionType.LOVE);
+        post.addReaction("user3", SocialMediaPost.ReactionType.LIKE);
+        post.addReaction("user4", SocialMediaPost.ReactionType.WOW);
+        
+        // Add comments
+        SocialMediaPost.Comment comment1 = post.addComment("user2", "Great explanation! Nested classes really help with encapsulation.");
+        SocialMediaPost.Comment comment2 = post.addComment("user3", "Can you share more examples?");
+        
+        // Add reply to comment
+        comment1.addReply("user1", "Thanks! I'll post more examples soon.");
+        
+        // Add nested reply
+        comment1.getReplies().get(0).addReply("user4", "Looking forward to it!");
+        
+        // Display post information
+        System.out.println("Post by: " + post.getAuthor());
+        System.out.println("Content: " + post.getContent());
+        System.out.println("Posted: " + post.getTimestamp());
+        
+        // Display reactions summary using nested class
+        SocialMediaPost.ReactionSummary reactions = post.getReactionSummary();
+        System.out.println("\nReactions: " + reactions.getTotalReactions() + " total");
+        System.out.println(reactions.getReactionBreakdown());
+        
+        // Display comments with nested structure
+        System.out.println("\nComments (" + post.getComments().size() + "):");
+        for (SocialMediaPost.Comment comment : post.getComments()) {
+            System.out.println(comment.getCommentTree());
+        }
+        
+        // Demonstrate builder pattern for post creation
+        SocialMediaPost complexPost = new SocialMediaPost.Builder("P002", "Senior Developer")
+            .content("Using builder pattern with nested classes for complex object creation!")
+            .addHashtag("#DesignPatterns")
+            .addHashtag("#Java")
+            .build();
+        
+        System.out.println("\nComplex Post: " + complexPost.getContent());
+        System.out.println("Hashtags: " + complexPost.getHashtags());
+    }
+    
+    // Example 4: University System
+    public static void demonstrateUniversitySystem() {
+        System.out.println("EXAMPLE 4: UNIVERSITY COURSE MANAGEMENT SYSTEM");
+        
+        // Create a course
+        UniversityCourse course = new UniversityCourse("CS101", "Introduction to Programming", "Dr. Smith");
+        
+        // Create students using nested builder
+        UniversityCourse.Student student1 = new UniversityCourse.Student.Builder("S001", "Alice Johnson")
+            .email("alice@university.edu")
+            .major("Computer Science")
+            .year(2)
+            .build();
+            
+        UniversityCourse.Student student2 = new UniversityCourse.Student.Builder("S002", "Bob Wilson")
+            .email("bob@university.edu")
+            .major("Software Engineering")
+            .year(3)
+            .build();
+        
+        // Enroll students
+        course.enrollStudent(student1);
+        course.enrollStudent(student2);
+        
+        // Add assignments
+        UniversityCourse.Assignment assignment1 = course.createAssignment("A001", "Basic Syntax", 100);
+        UniversityCourse.Assignment assignment2 = course.createAssignment("A002", "Object-Oriented Programming", 100);
+        
+        // Submit grades
+        assignment1.submitGrade(student1, 85);
+        assignment1.submitGrade(student2, 92);
+        assignment2.submitGrade(student1, 88);
+        assignment2.submitGrade(student2, 95);
+        
+        // Display course information
+        System.out.println("Course: " + course.getCourseCode() + " - " + course.getCourseName());
+        System.out.println("Instructor: " + course.getInstructor());
+        System.out.println("Enrolled Students: " + course.getEnrolledStudents().size());
+        
+        // Display student grades using nested Grade class
+        System.out.println("\nStudent Grades:");
+        for (UniversityCourse.Student student : course.getEnrolledStudents()) {
+            UniversityCourse.StudentGradeReport report = course.generateGradeReport(student);
+            System.out.println(report.getReportSummary());
+        }
+        
+        // Display assignment statistics using nested class
+        System.out.println("\nAssignment Statistics:");
+        for (UniversityCourse.Assignment assignment : course.getAssignments()) {
+            UniversityCourse.AssignmentStatistics stats = assignment.getStatistics();
+            System.out.println(assignment.getAssignmentName() + ": " + stats.getSummary());
+        }
+    }
+}
+
+// ==================== EXAMPLE 1: E-COMMERCE SYSTEM ====================
+
+/**
+ * EcommerceStore demonstrating static nested classes for related entities
+ */
+class EcommerceStore {
+    
+    // Static nested class: Product doesn't need access to EcommerceStore instance
+    public static class Product {
+        private final String productId;
+        private final String name;
+        private final double price;
+        private int stockQuantity;
+        
+        public Product(String productId, String name, double price, int stockQuantity) {
+            this.productId = productId;
+            this.name = name;
+            this.price = price;
+            this.stockQuantity = stockQuantity;
+        }
+        
+        // Getters
+        public String getProductId() { return productId; }
+        public String getName() { return name; }
+        public double getPrice() { return price; }
+        public int getStockQuantity() { return stockQuantity; }
+        
+        public void reduceStock(int quantity) {
+            if (quantity <= stockQuantity) {
+                stockQuantity -= quantity;
+            }
+        }
+        
+        @Override
+        public String toString() {
+            return String.format("%s - $%.2f (Stock: %d)", name, price, stockQuantity);
+        }
+    }
+    
+    // Static nested class: Customer
+    public static class Customer {
+        private final String customerId;
+        private final String name;
+        private final String email;
+        
+        public Customer(String customerId, String name, String email) {
+            this.customerId = customerId;
+            this.name = name;
+            this.email = email;
+        }
+        
+        // Getters
+        public String getCustomerId() { return customerId; }
+        public String getName() { return name; }
+        public String getEmail() { return email; }
+    }
+    
+    // Inner class: Order needs access to Product and Customer classes
+    public static class Order {
+        private final String orderId;
+        private final Customer customer;
+        private final List<OrderItem> items;
+        private OrderStatus status;
+        
+        // Inner class: OrderItem tightly coupled with Order
+        public class OrderItem {
+            private final Product product;
+            private final int quantity;
+            private final double unitPrice;
+            
+            public OrderItem(Product product, int quantity) {
+                this.product = product;
+                this.quantity = quantity;
+                this.unitPrice = product.getPrice();
+            }
+            
+            public double getTotalPrice() {
+                return quantity * unitPrice;
+            }
+            
+            public String getItemSummary() {
+                return String.format("%s x%d - $%.2f", product.getName(), quantity, getTotalPrice());
+            }
+            
+            // Access to enclosing Order's fields
+            public String getOrderReference() {
+                return "Order: " + orderId;
+            }
+        }
+        
+        public Order(String orderId, Customer customer) {
+            this.orderId = orderId;
+            this.customer = customer;
+            this.items = new ArrayList<>();
+            this.status = OrderStatus.PENDING;
+        }
+        
+        public void addItem(Product product, int quantity) {
+            if (product.getStockQuantity() >= quantity) {
+                OrderItem item = new OrderItem(product, quantity); // Inner class instance
+                items.add(item);
+                product.reduceStock(quantity);
+            }
+        }
+        
+        public double getTotalAmount() {
+            return items.stream().mapToDouble(OrderItem::getTotalPrice).sum();
+        }
+        
+        public List<OrderItem> getItems() {
+            return new ArrayList<>(items);
+        }
+        
+        public String getOrderSummary() {
+            return String.format("Order %s for %s - Total: $%.2f (%d items)", 
+                               orderId, customer.getName(), getTotalAmount(), items.size());
+        }
+    }
+    
+    // Static nested class: OrderProcessor doesn't need Order instance
+    public static class OrderProcessor {
+        
+        // Static nested class: ProcessResult for returning multiple values
+        public static class ProcessResult {
+            private final boolean success;
+            private final String message;
+            private final double totalAmount;
+            
+            public ProcessResult(boolean success, String message, double totalAmount) {
+                this.success = success;
+                this.message = message;
+                this.totalAmount = totalAmount;
+            }
+            
+            public boolean isSuccess() { return success; }
+            public String getMessage() { return message; }
+            public double getTotalAmount() { return totalAmount; }
+        }
+        
+        public ProcessResult processOrder(Order order) {
+            if (order.getItems().isEmpty()) {
+                return new ProcessResult(false, "Order has no items", 0);
+            }
+            
+            order.status = OrderStatus.PROCESSED;
+            return new ProcessResult(true, "Order processed successfully", order.getTotalAmount());
+        }
+    }
+    
+    enum OrderStatus {
+        PENDING, PROCESSED, SHIPPED, DELIVERED, CANCELLED
+    }
+}
+
+// ==================== EXAMPLE 2: BANK ACCOUNT SYSTEM ====================
+
+/**
+ * BankAccount demonstrating inner classes for tightly coupled functionality
+ */
+class BankAccount {
+    private final String accountNumber;
+    private final String accountHolder;
+    private double balance;
+    private final List<Transaction> transactions;
+    
+    // Inner class: Transaction is tightly coupled with BankAccount
+    public class Transaction {
+        private final String transactionId;
+        private final TransactionType type;
+        private final double amount;
+        private final String description;
+        private final Date timestamp;
+        private double balanceAfterTransaction;
+        
+        public Transaction(TransactionType type, double amount, String description) {
+            this.transactionId = generateTransactionId();
+            this.type = type;
+            this.amount = amount;
+            this.description = description;
+            this.timestamp = new Date();
+            this.balanceAfterTransaction = balance;
+        }
+        
+        private String generateTransactionId() {
+            return "TXN_" + accountNumber + "_" + System.currentTimeMillis();
+        }
+        
+        public String getTransactionDetails() {
+            String symbol = type == TransactionType.DEPOSIT ? "+" : "-";
+            return String.format("[%s] %s$%.2f - %s (Balance: $%.2f)", 
+                               timestamp, symbol, amount, description, balanceAfterTransaction);
+        }
+        
+        // Access to enclosing class fields
+        public String getAccountInfo() {
+            return accountHolder + " - " + accountNumber;
+        }
+    }
+    
+    // Static nested class: AccountStatement doesn't need BankAccount instance
+    public static class AccountStatement {
+        private final String accountNumber;
+        private final String period;
+        private final List<Transaction> transactions;
+        private final double openingBalance;
+        private final double closingBalance;
+        
+        public AccountStatement(String accountNumber, String period, 
+                              List<Transaction> transactions, double openingBalance, double closingBalance) {
+            this.accountNumber = accountNumber;
+            this.period = period;
+            this.transactions = new ArrayList<>(transactions);
+            this.openingBalance = openingBalance;
+            this.closingBalance = closingBalance;
+        }
+        
+        public String getStatementSummary() {
+            return String.format("Statement for %s (%s)\nTransactions: %d\nOpening: $%.2f | Closing: $%.2f", 
+                               accountNumber, period, transactions.size(), openingBalance, closingBalance);
+        }
+    }
+    
+    public BankAccount(String accountNumber, String accountHolder, double initialBalance) {
+        this.accountNumber = accountNumber;
+        this.accountHolder = accountHolder;
+        this.balance = initialBalance;
+        this.transactions = new ArrayList<>();
+        
+        // Record initial balance as transaction
+        Transaction initialTransaction = new Transaction(TransactionType.DEPOSIT, initialBalance, "Initial deposit");
+        transactions.add(initialTransaction);
+    }
+    
+    public void deposit(double amount, String description) {
+        if (amount > 0) {
+            balance += amount;
+            Transaction transaction = new Transaction(TransactionType.DEPOSIT, amount, description);
+            transaction.balanceAfterTransaction = balance;
+            transactions.add(transaction);
+        }
+    }
+    
+    public void withdraw(double amount, String description) {
+        if (amount > 0 && balance >= amount) {
+            balance -= amount;
+            Transaction transaction = new Transaction(TransactionType.WITHDRAWAL, amount, description);
+            transaction.balanceAfterTransaction = balance;
+            transactions.add(transaction);
+        }
+    }
+    
+    public List<Transaction> getTransactionHistory() {
+        return new ArrayList<>(transactions);
+    }
+    
+    public List<Transaction> getTransactionsByType(TransactionType type) {
+        return transactions.stream()
+                .filter(t -> t.type == type)
+                .collect(Collectors.toList());
+    }
+    
+    public AccountStatement generateStatement(int lastNTransactions) {
+        List<Transaction> recentTransactions = transactions.stream()
+                .skip(Math.max(0, transactions.size() - lastNTransactions))
+                .collect(Collectors.toList());
+        
+        double openingBalance = recentTransactions.isEmpty() ? balance : recentTransactions.get(0).balanceAfterTransaction - 
+            (recentTransactions.get(0).type == TransactionType.DEPOSIT ? -recentTransactions.get(0).amount : recentTransactions.get(0).amount);
+        
+        return new AccountStatement(accountNumber, "Recent", recentTransactions, openingBalance, balance);
+    }
+    
+    // Getters
+    public String getAccountNumber() { return accountNumber; }
+    public String getAccountHolder() { return accountHolder; }
+    public double getBalance() { return balance; }
+}
+
+enum TransactionType {
+    DEPOSIT, WITHDRAWAL
+}
+
+// ==================== EXAMPLE 3: SOCIAL MEDIA SYSTEM ====================
+
+/**
+ * SocialMediaPost demonstrating complex nested class hierarchy
+ */
+class SocialMediaPost {
+    private final String postId;
+    private final String author;
+    private final String content;
+    private final Date timestamp;
+    private final List<String> hashtags;
+    private final List<Reaction> reactions;
+    private final List<Comment> comments;
+    
+    // Static nested enum: ReactionType
+    public enum ReactionType {
+        LIKE, LOVE, HAHA, WOW, SAD, ANGRY;
+        
+        public String getEmoji() {
+            switch (this) {
+                case LIKE: return "👍";
+                case LOVE: return "❤️";
+                case HAHA: return "😄";
+                case WOW: return "😮";
+                case SAD: return "😢";
+                case ANGRY: return "😠";
+                default: return "❓";
+            }
+        }
+    }
+    
+    // Inner class: Reaction
+    public class Reaction {
+        private final String userId;
+        private final ReactionType type;
+        private final Date timestamp;
+        
+        public Reaction(String userId, ReactionType type) {
+            this.userId = userId;
+            this.type = type;
+            this.timestamp = new Date();
+        }
+        
+        public String getReactionInfo() {
+            return String.format("%s reacted %s", userId, type.getEmoji());
+        }
+        
+        // Access to post content
+        public String getPostPreview() {
+            return content.length() > 50 ? content.substring(0, 50) + "..." : content;
+        }
+    }
+    
+    // Inner class: Comment with nested Reply class
+    public class Comment {
+        private final String commentId;
+        private final String userId;
+        private final String text;
+        private final Date timestamp;
+        private final List<Reply> replies;
+        
+        // Nested class inside inner class: Reply
+        public class Reply {
+            private final String replyId;
+            private final String userId;
+            private final String text;
+            private final Date timestamp;
+            private final List<Reply> nestedReplies;
+            
+            public Reply(String userId, String text) {
+                this.replyId = generateReplyId();
+                this.userId = userId;
+                this.text = text;
+                this.timestamp = new Date();
+                this.nestedReplies = new ArrayList<>();
+            }
+            
+            private String generateReplyId() {
+                return "REPLY_" + commentId + "_" + System.currentTimeMillis();
+            }
+            
+            public void addReply(String userId, String text) {
+                Reply nestedReply = new Reply(userId, text);
+                nestedReplies.add(nestedReply);
+            }
+            
+            public String getReplyInfo() {
+                return String.format("%s replied: %s", userId, text);
+            }
+            
+            public List<Reply> getReplies() {
+                return new ArrayList<>(nestedReplies);
+            }
+            
+            // Access to Comment and Post fields
+            public String getContext() {
+                return "Reply to comment on: " + getPostPreview();
+            }
+            
+            private String getPostPreview() {
+                return content.length() > 30 ? content.substring(0, 30) + "..." : content;
+            }
+        }
+        
+        public Comment(String userId, String text) {
+            this.commentId = generateCommentId();
+            this.userId = userId;
+            this.text = text;
+            this.timestamp = new Date();
+            this.replies = new ArrayList<>();
+        }
+        
+        private String generateCommentId() {
+            return "COMMENT_" + postId + "_" + System.currentTimeMillis();
+        }
+        
+        public Reply addReply(String userId, String text) {
+            Reply reply = new Reply(userId, text);
+            replies.add(reply);
+            return reply;
+        }
+        
+        public String getCommentInfo() {
+            return String.format("%s commented: %s", userId, text);
+        }
+        
+        public String getCommentTree() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("  └─ ").append(getCommentInfo()).append(" (").append(replies.size()).append(" replies)\n");
+            
+            for (Reply reply : replies) {
+                sb.append("      └─ ").append(reply.getReplyInfo()).append("\n");
+                
+                for (Reply nestedReply : reply.getReplies()) {
+                    sb.append("          └─ ").append(nestedReply.getReplyInfo()).append("\n");
+                }
+            }
+            return sb.toString();
+        }
+        
+        public List<Reply> getReplies() {
+            return new ArrayList<>(replies);
+        }
+    }
+    
+    // Static nested class: ReactionSummary for analytics
+    public static class ReactionSummary {
+        private final Map<ReactionType, Integer> reactionCounts;
+        private final int totalReactions;
+        
+        public ReactionSummary(Map<ReactionType, Integer> reactionCounts) {
+            this.reactionCounts = new EnumMap<>(reactionCounts);
+            this.totalReactions = reactionCounts.values().stream().mapToInt(Integer::intValue).sum();
+        }
+        
+        public String getReactionBreakdown() {
+            return reactionCounts.entrySet().stream()
+                    .map(entry -> entry.getKey().getEmoji() + ": " + entry.getValue())
+                    .collect(Collectors.joining(", "));
+        }
+        
+        public int getTotalReactions() { return totalReactions; }
+        public Map<ReactionType, Integer> getReactionCounts() { return new EnumMap<>(reactionCounts); }
+    }
+    
+    // Static nested class: Builder pattern
+    public static class Builder {
+        private final String postId;
+        private final String author;
+        private String content = "";
+        private final List<String> hashtags = new ArrayList<>();
+        
+        public Builder(String postId, String author) {
+            this.postId = postId;
+            this.author = author;
+        }
+        
+        public Builder content(String content) {
+            this.content = content;
+            return this;
+        }
+        
+        public Builder addHashtag(String hashtag) {
+            this.hashtags.add(hashtag);
+            return this;
+        }
+        
+        public SocialMediaPost build() {
+            return new SocialMediaPost(this);
+        }
+    }
+    
+    // Constructors
+    public SocialMediaPost(String postId, String author, String content) {
+        this.postId = postId;
+        this.author = author;
+        this.content = content;
+        this.timestamp = new Date();
+        this.hashtags = new ArrayList<>();
+        this.reactions = new ArrayList<>();
+        this.comments = new ArrayList<>();
+        extractHashtags();
+    }
+    
+    private SocialMediaPost(Builder builder) {
+        this(builder.postId, builder.author, builder.content);
+        this.hashtags.addAll(builder.hashtags);
+    }
+    
+    private void extractHashtags() {
+        String[] words = content.split("\\s+");
+        for (String word : words) {
+            if (word.startsWith("#") && word.length() > 1) {
+                hashtags.add(word);
+            }
+        }
+    }
+    
+    public void addReaction(String userId, ReactionType type) {
+        Reaction reaction = new Reaction(userId, type);
+        reactions.add(reaction);
+    }
+    
+    public Comment addComment(String userId, String text) {
+        Comment comment = new Comment(userId, text);
+        comments.add(comment);
+        return comment;
+    }
+    
+    public ReactionSummary getReactionSummary() {
+        Map<ReactionType, Integer> counts = new EnumMap<>(ReactionType.class);
+        for (Reaction reaction : reactions) {
+            counts.merge(reaction.type, 1, Integer::sum);
+        }
+        return new ReactionSummary(counts);
+    }
+    
+    // Getters
+    public String getPostId() { return postId; }
+    public String getAuthor() { return author; }
+    public String getContent() { return content; }
+    public Date getTimestamp() { return timestamp; }
+    public List<String> getHashtags() { return new ArrayList<>(hashtags); }
+    public List<Comment> getComments() { return new ArrayList<>(comments); }
+    public List<Reaction> getReactions() { return new ArrayList<>(reactions); }
+}
+
+// ==================== EXAMPLE 4: UNIVERSITY COURSE SYSTEM ====================
+
+/**
+ * UniversityCourse demonstrating complex nested class structure for academic system
+ */
+class UniversityCourse {
+    private final String courseCode;
+    private final String courseName;
+    private final String instructor;
+    private final List<Student> enrolledStudents;
+    private final List<Assignment> assignments;
+    
+    // Static nested class: Student
+    public static class Student {
+        private final String studentId;
+        private final String name;
+        private final String email;
+        private final String major;
+        private final int year;
+        
+        // Static nested class: Builder for Student
+        public static class Builder {
+            private final String studentId;
+            private final String name;
+            private String email = "";
+            private String major = "Undeclared";
+            private int year = 1;
+            
+            public Builder(String studentId, String name) {
+                this.studentId = studentId;
+                this.name = name;
+            }
+            
+            public Builder email(String email) {
+                this.email = email;
+                return this;
+            }
+            
+            public Builder major(String major) {
+                this.major = major;
+                return this;
+            }
+            
+            public Builder year(int year) {
+                this.year = year;
+                return this;
+            }
+            
+            public Student build() {
+                return new Student(this);
+            }
+        }
+        
+        private Student(Builder builder) {
+            this.studentId = builder.studentId;
+            this.name = builder.name;
+            this.email = builder.email;
+            this.major = builder.major;
+            this.year = builder.year;
+        }
+        
+        // Getters
+        public String getStudentId() { return studentId; }
+        public String getName() { return name; }
+        public String getEmail() { return email; }
+        public String getMajor() { return major; }
+        public int getYear() { return year; }
+        
+        @Override
+        public String toString() {
+            return String.format("%s (%s) - %s, Year %d", name, studentId, major, year);
+        }
+    }
+    
+    // Inner class: Assignment
+    public class Assignment {
+        private final String assignmentId;
+        private final String assignmentName;
+        private final int maxScore;
+        private final Map<Student, Integer> grades;
+        
+        public Assignment(String assignmentId, String assignmentName, int maxScore) {
+            this.assignmentId = assignmentId;
+            this.assignmentName = assignmentName;
+            this.maxScore = maxScore;
+            this.grades = new HashMap<>();
+        }
+        
+        public void submitGrade(Student student, int score) {
+            if (score >= 0 && score <= maxScore) {
+                grades.put(student, score);
+            }
+        }
+        
+        public Integer getGrade(Student student) {
+            return grades.get(student);
+        }
+        
+        // Static nested class inside inner class: AssignmentStatistics
+        public class AssignmentStatistics {
+            public double getAverageScore() {
+                return grades.values().stream()
+                        .mapToInt(Integer::intValue)
+                        .average()
+                        .orElse(0.0);
+            }
+            
+            public int getMaxScore() {
+                return grades.values().stream()
+                        .mapToInt(Integer::intValue)
+                        .max()
+                        .orElse(0);
+            }
+            
+            public int getMinScore() {
+                return grades.values().stream()
+                        .mapToInt(Integer::intValue)
+                        .min()
+                        .orElse(0);
+            }
+            
+            public int getSubmissionCount() {
+                return grades.size();
+            }
+            
+            public String getSummary() {
+                return String.format("Submissions: %d, Average: %.1f/%d, Range: %d-%d", 
+                                   getSubmissionCount(), getAverageScore(), maxScore, getMinScore(), getMaxScore());
+            }
+        }
+        
+        public AssignmentStatistics getStatistics() {
+            return new AssignmentStatistics();
+        }
+        
+        // Getters
+        public String getAssignmentId() { return assignmentId; }
+        public String getAssignmentName() { return assignmentName; }
+        public int getMaxScore() { return maxScore; }
+        public Map<Student, Integer> getGrades() { return new HashMap<>(grades); }
+    }
+    
+    // Static nested class: StudentGradeReport
+    public static class StudentGradeReport {
+        private final Student student;
+        private final Map<String, Integer> assignmentGrades;
+        private final double averageGrade;
+        
+        public StudentGradeReport(Student student, Map<String, Integer> assignmentGrades) {
+            this.student = student;
+            this.assignmentGrades = new HashMap<>(assignmentGrades);
+            this.averageGrade = assignmentGrades.values().stream()
+                    .mapToInt(Integer::intValue)
+                    .average()
+                    .orElse(0.0);
+        }
+        
+        public String getReportSummary() {
+            return String.format("%s - Average: %.1f%% (%d assignments)", 
+                               student.getName(), averageGrade, assignmentGrades.size());
+        }
+        
+        public String getDetailedReport() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Grade Report for ").append(student.getName()).append("\n");
+            assignmentGrades.forEach((assignment, grade) -> 
+                sb.append("  ").append(assignment).append(": ").append(grade).append("%\n"));
+            sb.append("Overall Average: ").append(String.format("%.1f%%", averageGrade));
+            return sb.toString();
+        }
+    }
+    
+    public UniversityCourse(String courseCode, String courseName, String instructor) {
+        this.courseCode = courseCode;
+        this.courseName = courseName;
+        this.instructor = instructor;
+        this.enrolledStudents = new ArrayList<>();
+        this.assignments = new ArrayList<>();
+    }
+    
+    public void enrollStudent(Student student) {
+        if (!enrolledStudents.contains(student)) {
+            enrolledStudents.add(student);
+        }
+    }
+    
+    public Assignment createAssignment(String assignmentId, String assignmentName, int maxScore) {
+        Assignment assignment = new Assignment(assignmentId, assignmentName, maxScore);
+        assignments.add(assignment);
+        return assignment;
+    }
+    
+    public StudentGradeReport generateGradeReport(Student student) {
+        Map<String, Integer> studentGrades = new HashMap<>();
+        
+        for (Assignment assignment : assignments) {
+            Integer grade = assignment.getGrade(student);
+            if (grade != null) {
+                studentGrades.put(assignment.getAssignmentName(), grade);
+            }
+        }
+        
+        return new StudentGradeReport(student, studentGrades);
+    }
+    
+    // Getters
+    public String getCourseCode() { return courseCode; }
+    public String getCourseName() { return courseName; }
+    public String getInstructor() { return instructor; }
+    public List<Student> getEnrolledStudents() { return new ArrayList<>(enrolledStudents); }
+    public List<Assignment> getAssignments() { return new ArrayList<>(assignments); }
+}

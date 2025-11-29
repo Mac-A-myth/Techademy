@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<book>
+    <title>The Hobbit</title>
+    <author>J.R.R. Tolkien</author>
+    <publication_year>1937</publication_year>
+    <genre>Fantasy</genre>
+    
+    <publisher>
+        <name>George Allen &amp; Unwin</name>
+        <country>United Kingdom</country>
+    </publisher>
+    
+    <characters>
+        <character>
+            <name>Bilbo Baggins</name>
+            <role>Protagonist</role>
+        </character>
+        <character>
+            <name>Gandalf</name>
+            <role>Wizard</role>
+        </character>
+        <character>
+            <name>Thorin Oakenshield</name>
+            <role>Dwarf Leader</role>
+        </character>
+        <character>
+            <name>Smaug</name>
+            <role>Antagonist</role>
+        </character>
+    </characters>
+    
+    <settings>
+        <location>Middle-earth</location>
+        <era>Third Age</era>
+    </settings>
+</book>

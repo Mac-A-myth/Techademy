@@ -1,0 +1,630 @@
+2. TrendingHashtagsProcessor.java
+java
+
+package com.example;
+
+import java.util.concurrent.Flow;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * Processor that processes incoming hashtags and maintains trending hashtags list
+ * Implements both Publisher and Subscriber interfaces
+ */
+public class TrendingHashtagsProcessor 
+    implements Flow.Processor<String, String> {
+    
+    private Flow.Subscriber<? super String> downstreamSubscriber;
+    private Flow.Subscription upstreamSubscription;
+    
+    // Store hashtags and their counts
+    private final Map<String, AtomicInteger> hashtagCounts = new HashMap<>();
+    private final List<String> trendingHashtags = new ArrayList<>();
+    
+    // Configuration
+    private final int maxTrendingSize;
+    private final long processingDelay;
+    
+    public TrendingHashtagsProcessor() {
+        this(10, 100); // Default: top 10, 100ms processing delay
+    }
+    
+    public TrendingHashtagsProcessor(int maxTrendingSize, long processingDelay) {
+        this.maxTrendingSize = maxTrendingSize;
+        this.processingDelay = processingDelay;
+    }
+    
+    // Processor methods (acting as Subscriber to upstream)
+    @Override
+    public void onSubscribe(Flow.Subscription subscription) {
+        this.upstreamSubscription = subscription;
+        System.out.println("TrendingHashtagsProcessor: Subscribed to upstream publisher");
+        // Request first batch of items
+        subscription.request(1);
+    }
+    
+    @Override
+    public void onNext(String hashtag) {
+        System.out.println("TrendingHashtagsProcessor: Processing hashtag - " + hashtag);
+        
+        // Simulate processing delay
+        try {
+            Thread.sleep(processingDelay);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+        }
+        
+        // Update hashtag count
+        updateHashtagCount(hashtag);
+        
+        // Update trending list
+        updateTrendingHashtags();
+        
+        // Pass the processed hashtag to downstream subscribers
+        if (downstreamSubscriber != null) {
+            downstreamSubscriber.onNext("Processed: " + hashtag + " (Count: " + 
+                hashtagCounts.get(hashtag).get() + ")");
+        }
+        
+        // Request next item
+        upstreamSubscription.request(1);
+    }
+    
+    @Override
+    public void onError(Throwable throwable) {
+        System.err.println("TrendingHashtagsProcessor: Error occurred - " + throwable.getMessage());
+        if (downstreamSubscriber != null) {
+            downstreamSubscriber.onError(throwable);
+        }
+    }
+    
+    @Override
+    public void onComplete() {
+        System.out.println("TrendingHashtagsProcessor: Upstream completed");
+        // Print final trending hashtags
+        printTopTrendingHashtags();
+        if (downstreamSubscriber != null) {
+            downstreamSubscriber.onComplete();
+        }
+    }
+    
+    // Processor methods (acting as Publisher to downstream)
+    @Override
+    public void subscribe(Flow.Subscriber<? super String> subscriber) {
+        this.downstreamSubscriber = subscriber;
+        subscriber.onSubscribe(new Flow.Subscription() {
+            private boolean cancelled = false;
+            
+            @Override
+            public void request(long n) {
+                // Downstream can request items, but we control the flow from upstream
+                System.out.println("TrendingHashtagsProcessor: Downstream requested " + n + " items");
+            }
+            
+            @Override
+            public void cancel() {
+                cancelled = true;
+                System.out.println("TrendingHashtagsProcessor: Downstream subscription cancelled");
+            }
+        });
+    }
+    
+    // Hashtag processing logic
+    private void updateHashtagCount(String hashtag) {
+        hashtagCounts.computeIfAbsent(hashtag, k -> new AtomicInteger(0))
+                     .incrementAndGet();
+    }
+    
+    private void updateTrendingHashtags() {
+        // Sort hashtags by count in descending order
+        trendingHashtags.clear();
+        trendingHashtags.addAll(hashtagCounts.entrySet().stream()
+            .sorted((e1, e2) -> Integer.compare(e2.getValue().get(), e1.getValue().get()))
+            .limit(maxTrendingSize)
+            .map(Map.Entry::getKey)
+            .toList());
+    }
+    
+    // Public method to get top trending hashtags
+    public List<String> getTopTrendingHashtags(int topN) {
+        if (topN <= 0 || topN > trendingHashtags.size()) {
+            topN = Math.min(trendingHashtags.size(), 3); // Default to top 3 or available
+        }
+        
+        return trendingHashtags.stream()
+                .limit(topN)
+                .map(hashtag -> hashtag + " (Count: " + hashtagCounts.get(hashtag).get() + ")")
+                .toList();
+    }
+    
+    public Map<String, Integer> getAllHashtagCounts() {
+        Map<String, Integer> counts = new HashMap<>();
+        hashtagCounts.forEach((k, v) -> counts.put(k, v.get()));
+        return counts;
+    }
+    
+    private void printTopTrendingHashtags() {
+        List<String> topHashtags = getTopTrendingHashtags(3);
+        System.out.println("\n=== FINAL TRENDING HASHTAGS ===");
+        if (topHashtags.isEmpty()) {
+            System.out.println("No hashtags processed.");
+        } else {
+            for (int i = 0; i < topHashtags.size(); i++) {
+                System.out.println((i + 1) + ". " + topHashtags.get(i));
+            }
+        }
+        System.out.println("Total unique hashtags: " + hashtagCounts.size());
+    }
+    
+    // Utility methods
+    public int getTotalHashtagsProcessed() {
+        return hashtagCounts.values().stream()
+                .mapToInt(AtomicInteger::get)
+                .sum();
+    }
+    
+    public int getUniqueHashtagsCount() {
+        return hashtagCounts.size();
+    }
+}
+
+3. TrendingHashtagsPublisher.java
+java
+
+package com.example;
+
+import java.util.concurrent.Flow;
+import java.util.concurrent.SubmissionPublisher;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Publisher that generates and publishes hashtag updates
+ */
+public class TrendingHashtagsPublisher implements Flow.Publisher<String> {
+    
+    private final SubmissionPublisher<String> submissionPublisher;
+    private final ScheduledExecutorService scheduler;
+    private final List<String> availableHashtags;
+    private final Random random;
+    
+    private boolean publishing = false;
+    private int itemsToPublish;
+    
+    public TrendingHashtagsPublisher() {
+        this.submissionPublisher = new SubmissionPublisher<>();
+        this.scheduler = Executors.newSingleThreadScheduledExecutor();
+        this.random = new Random();
+        
+        // Initialize with some popular hashtags
+        this.availableHashtags = Arrays.asList(
+            "#Java", "#Programming", "#Tech", "#Coding", "#Developer",
+            "#AI", "#MachineLearning", "#DataScience", "#BigData",
+            "#WebDevelopment", "#MobileApp", "#Cloud", "#DevOps",
+            "#OpenSource", "#Software", "#API", "#Microservices",
+            "#Blockchain", "#IoT", "#CyberSecurity", "#UX", "#UI",
+            "#Agile", "#Scrum", "#Startup", "#Innovation", "#Digital",
+            "#Future", "#TechNews", "#ComputerScience"
+        );
+    }
+    
+    @Override
+    public void subscribe(Flow.Subscriber<? super String> subscriber) {
+        System.out.println("TrendingHashtagsPublisher: New subscriber registered");
+        submissionPublisher.subscribe(subscriber);
+    }
+    
+    /**
+     * Start publishing hashtags at a fixed rate
+     */
+    public void startPublishing(int itemsCount, long delayBetweenItems) {
+        if (publishing) {
+            System.out.println("Already publishing hashtags");
+            return;
+        }
+        
+        this.itemsToPublish = itemsCount;
+        this.publishing = true;
+        
+        System.out.println("Starting to publish " + itemsCount + " hashtags...");
+        
+        scheduler.scheduleAtFixedRate(() -> {
+            if (itemsToPublish > 0) {
+                String hashtag = getRandomHashtag();
+                System.out.println("Publishing hashtag: " + hashtag);
+                submissionPublisher.submit(hashtag);
+                itemsToPublish--;
+            } else {
+                stopPublishing();
+            }
+        }, 0, delayBetweenItems, TimeUnit.MILLISECONDS);
+    }
+    
+    /**
+     * Publish a specific set of hashtags
+     */
+    public void publishHashtags(List<String> hashtags, long delayBetweenItems) {
+        if (publishing) {
+            System.out.println("Already publishing hashtags");
+            return;
+        }
+        
+        this.itemsToPublish = hashtags.size();
+        this.publishing = true;
+        
+        System.out.println("Publishing specific hashtags: " + hashtags);
+        
+        final Iterator<String> iterator = hashtags.iterator();
+        
+        scheduler.scheduleAtFixedRate(() -> {
+            if (iterator.hasNext()) {
+                String hashtag = iterator.next();
+                System.out.println("Publishing hashtag: " + hashtag);
+                submissionPublisher.submit(hashtag);
+                itemsToPublish--;
+            } else {
+                stopPublishing();
+            }
+        }, 0, delayBetweenItems, TimeUnit.MILLISECONDS);
+    }
+    
+    /**
+     * Stop publishing and complete the stream
+     */
+    public void stopPublishing() {
+        if (!publishing) {
+            return;
+        }
+        
+        publishing = false;
+        scheduler.shutdown();
+        
+        try {
+            if (!scheduler.awaitTermination(1, TimeUnit.SECONDS)) {
+                scheduler.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            scheduler.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        
+        System.out.println("All hashtags published. Completing stream...");
+        submissionPublisher.close();
+    }
+    
+    /**
+     * Get a random hashtag from available list
+     */
+    private String getRandomHashtag() {
+        // Introduce some bias to make certain hashtags more popular
+        if (random.nextDouble() < 0.3) { // 30% chance for popular hashtags
+            return availableHashtags.get(random.nextInt(5)); // First 5 are more popular
+        } else {
+            return availableHashtags.get(random.nextInt(availableHashtags.size()));
+        }
+    }
+    
+    /**
+     * Publish a burst of hashtags at once
+     */
+    public void publishBurst(List<String> hashtags) {
+        System.out.println("Publishing burst of hashtags: " + hashtags);
+        for (String hashtag : hashtags) {
+            submissionPublisher.submit(hashtag);
+        }
+    }
+    
+    /**
+     * Check if currently publishing
+     */
+    public boolean isPublishing() {
+        return publishing;
+    }
+    
+    /**
+     * Get estimated maximum lag
+     */
+    public int getEstimatedLag() {
+        return submissionPublisher.estimateMaximumLag();
+    }
+    
+    /**
+     * Cleanup resources
+     */
+    public void shutdown() {
+        stopPublishing();
+        submissionPublisher.close();
+    }
+}
+
+4. HashtagSubscriber.java
+java
+
+package com.example;
+
+import java.util.concurrent.Flow;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * Simple subscriber to demonstrate the flow of processed hashtags
+ */
+public class HashtagSubscriber implements Flow.Subscriber<String> {
+    
+    private Flow.Subscription subscription;
+    private final String name;
+    private final AtomicInteger receivedCount;
+    private final int requestSize;
+    
+    public HashtagSubscriber(String name) {
+        this(name, 5); // Default: request 5 items at a time
+    }
+    
+    public HashtagSubscriber(String name, int requestSize) {
+        this.name = name;
+        this.requestSize = requestSize;
+        this.receivedCount = new AtomicInteger(0);
+    }
+    
+    @Override
+    public void onSubscribe(Flow.Subscription subscription) {
+        this.subscription = subscription;
+        System.out.println(name + ": Subscribed successfully");
+        // Request first batch of items
+        subscription.request(requestSize);
+    }
+    
+    @Override
+    public void onNext(String item) {
+        System.out.println(name + ": Received - " + item);
+        receivedCount.incrementAndGet();
+        
+        // Request next batch if we've processed current batch
+        if (receivedCount.get() % requestSize == 0) {
+            subscription.request(requestSize);
+        }
+    }
+    
+    @Override
+    public void onError(Throwable throwable) {
+        System.err.println(name + ": Error - " + throwable.getMessage());
+    }
+    
+    @Override
+    public void onComplete() {
+        System.out.println(name + ": Completed! Total items received: " + receivedCount.get());
+    }
+    
+    public int getReceivedCount() {
+        return receivedCount.get();
+    }
+    
+    public String getName() {
+        return name;
+    }
+}
+
+5. Main.java
+java
+
+package com.example;
+
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Main class to simulate the reactive hashtags processing system
+ */
+public class Main {
+    
+    public static void main(String[] args) {
+        System.out.println("=== REACTIVE HASHTAGS PROCESSING SYSTEM ===\n");
+        
+        try {
+            // Demonstration 1: Basic reactive flow
+            demonstrateBasicFlow();
+            
+            System.out.println("\n" + "=".repeat(50) + "\n");
+            
+            // Demonstration 2: Controlled publishing with completion
+            demonstrateControlledFlow();
+            
+            System.out.println("\n" + "=".repeat(50) + "\n");
+            
+            // Demonstration 3: Multiple subscribers
+            demonstrateMultipleSubscribers();
+            
+        } catch (Exception e) {
+            System.err.println("Error in main: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Demonstration 1: Basic reactive flow with automatic publishing
+     */
+    private static void demonstrateBasicFlow() {
+        System.out.println("DEMONSTRATION 1: Basic Reactive Flow");
+        
+        // Create publisher and processor
+        TrendingHashtagsPublisher publisher = new TrendingHashtagsPublisher();
+        TrendingHashtagsProcessor processor = new TrendingHashtagsProcessor(5, 50);
+        
+        // Create subscriber for processed data
+        HashtagSubscriber finalSubscriber = new HashtagSubscriber("FinalSubscriber", 3);
+        
+        // Chain: Publisher -> Processor -> Subscriber
+        processor.subscribe(finalSubscriber);
+        publisher.subscribe(processor);
+        
+        // Publish some hashtags
+        publisher.startPublishing(15, 100);
+        
+        // Wait for processing to complete
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        // Get top trending hashtags
+        List<String> topTrending = processor.getTopTrendingHashtags(3);
+        System.out.println("\n=== TOP 3 TRENDING HASHTAGS ===");
+        topTrending.forEach(System.out::println);
+        
+        // Cleanup
+        publisher.shutdown();
+    }
+    
+    /**
+     * Demonstration 2: Controlled flow with specific hashtags and proper completion
+     */
+    private static void demonstrateControlledFlow() {
+        System.out.println("DEMONSTRATION 2: Controlled Flow with Completion");
+        
+        CountDownLatch completionLatch = new CountDownLatch(1);
+        
+        TrendingHashtagsPublisher publisher = new TrendingHashtagsPublisher();
+        TrendingHashtagsProcessor processor = new TrendingHashtagsProcessor(8, 80);
+        
+        // Use a custom subscriber that signals completion
+        Flow.Subscriber<String> completionSubscriber = new Flow.Subscriber<String>() {
+            private Flow.Subscription subscription;
+            
+            @Override
+            public void onSubscribe(Flow.Subscription subscription) {
+                this.subscription = subscription;
+                subscription.request(1);
+            }
+            
+            @Override
+            public void onNext(String item) {
+                System.out.println("CompletionSubscriber: " + item);
+                subscription.request(1);
+            }
+            
+            @Override
+            public void onError(Throwable throwable) {
+                System.err.println("CompletionSubscriber Error: " + throwable.getMessage());
+                completionLatch.countDown();
+            }
+            
+            @Override
+            public void onComplete() {
+                System.out.println("CompletionSubscriber: Stream completed successfully!");
+                completionLatch.countDown();
+            }
+        };
+        
+        // Set up the reactive chain
+        processor.subscribe(completionSubscriber);
+        publisher.subscribe(processor);
+        
+        // Publish specific hashtags to create interesting trends
+        List<String> specificHashtags = Arrays.asList(
+            "#Java", "#Java", "#Java", "#Programming", "#AI",
+            "#Java", "#Programming", "#Cloud", "#AI", "#AI",
+            "#DevOps", "#Java", "#Microservices", "#AI", "#Programming",
+            "#Blockchain", "#Java", "#AI", "#Cloud", "#Programming"
+        );
+        
+        System.out.println("Publishing specific hashtags to create trends...");
+        publisher.publishHashtags(specificHashtags, 150);
+        
+        // Wait for completion
+        try {
+            boolean completed = completionLatch.await(5, TimeUnit.SECONDS);
+            if (completed) {
+                System.out.println("\n=== PROCESSING COMPLETED SUCCESSFULLY ===");
+            } else {
+                System.out.println("\n=== PROCESSING TIMEOUT ===");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        // Display final results
+        displayComprehensiveResults(processor);
+        
+        publisher.shutdown();
+    }
+    
+    /**
+     * Demonstration 3: Multiple subscribers with different interests
+     */
+    private static void demonstrateMultipleSubscribers() {
+        System.out.println("DEMONSTRATION 3: Multiple Subscribers");
+        
+        TrendingHashtagsPublisher publisher = new TrendingHashtagsPublisher();
+        TrendingHashtagsProcessor processor = new TrendingHashtagsProcessor();
+        
+        // Create multiple subscribers
+        HashtagSubscriber analyticsSubscriber = new HashtagSubscriber("Analytics", 2);
+        HashtagSubscriber dashboardSubscriber = new HashtagSubscriber("Dashboard", 4);
+        HashtagSubscriber archiveSubscriber = new HashtagSubscriber("Archive", 1);
+        
+        // Subscribe all to the processor
+        processor.subscribe(analyticsSubscriber);
+        processor.subscribe(dashboardSubscriber);
+        processor.subscribe(archiveSubscriber);
+        
+        // Connect publisher to processor
+        publisher.subscribe(processor);
+        
+        // Publish a burst of hashtags
+        List<String> burstHashtags = Arrays.asList(
+            "#Java", "#Python", "#Java", "#JavaScript", "#AI",
+            "#MachineLearning", "#Java", "#Python", "#Cloud", "#AI"
+        );
+        
+        publisher.publishBurst(burstHashtags);
+        
+        // Give some time for processing
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        // 
+
+lisher.stopPublishing();
+        
+        // Display results
+        System.out.println("\n=== MULTIPLE SUBSCRIBERS RESULTS ===");
+        System.out.println("Analytics received: " + analyticsSubscriber.getReceivedCount());
+        System.out.println("Dashboard received: " + dashboardSubscriber.getReceivedCount());
+        System.out.println("Archive received: " + archiveSubscriber.getReceivedCount());
+        
+        List<String> topTrending = processor.getTopTrendingHashtags(3);
+        System.out.println("\nTop 3 Trending Hashtags:");
+        topTrending.forEach(System.out::println);
+        
+        publisher.shutdown();
+    }
+    
+    /**
+     * Display comprehensive results from the processor
+     */
+    private static void displayComprehensiveResults(TrendingHashtagsProcessor processor) {
+        System.out.println("\n=== COMPREHENSIVE RESULTS ===");
+        System.out.println("Total hashtags processed: " + processor.getTotalHashtagsProcessed());
+        System.out.println("Unique hashtags: " + processor.getUniqueHashtagsCount());
+        
+        Map<String, Integer> allCounts = processor.getAllHashtagCounts();
+        System.out.println("\nAll Hashtag Counts:");
+        allCounts.entrySet().stream()
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                .forEach(entry -> System.out.println("  " + entry.getKey() + ": " + entry.getValue()));
+        
+        List<String> topTrending = processor.getTopTrendingHashtags(3);
+        System.out.println("\n🏆 TOP 3 TRENDING HASHTAGS 🏆");
+        for (int i = 0; i < topTrending.size(); i++) {
+            System.out.println((i + 1) + ". " + topTrending.get(i));
+        }
+    }
+}
+

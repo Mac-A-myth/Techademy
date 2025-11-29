@@ -1,0 +1,287 @@
+import java.util.*;
+import java.io.*;
+
+public class StringAndSortingOperations {
+    
+    // Level 1: String Search in Large Document
+    public static class DocumentSearcher {
+        
+        // Method to search for a string in a large document
+        public static void searchInDocument(String document, String searchString) {
+            System.out.println("=== LEVEL 1: STRING SEARCH IN LARGE DOCUMENT ===");
+            System.out.println("Searching for: \"" + searchString + "\"");
+            System.out.println("Document length: " + document.length() + " characters");
+            
+            int count = 0;
+            int index = 0;
+            List<Integer> positions = new ArrayList<>();
+            
+            // Search for all occurrences
+            while ((index = document.indexOf(searchString, index)) != -1) {
+                positions.add(index);
+                count++;
+                index += searchString.length();
+            }
+            
+            // Display results
+            if (count > 0) {
+                System.out.println("✅ Found " + count + " occurrence(s) of \"" + searchString + "\"");
+                System.out.println("Positions: " + positions);
+                
+                // Show context for first occurrence
+                if (!positions.isEmpty()) {
+                    int firstPos = positions.get(0);
+                    int start = Math.max(0, firstPos - 20);
+                    int end = Math.min(document.length(), firstPos + searchString.length() + 20);
+                    String context = document.substring(start, end).replace("\n", " ");
+                    System.out.println("First occurrence context: ..." + context + "...");
+                }
+            } else {
+                System.out.println("❌ No occurrences found for \"" + searchString + "\"");
+            }
+            System.out.println();
+        }
+        
+        // Method to read document from file (optional enhancement)
+        public static String readDocumentFromFile(String filename) {
+            StringBuilder content = new StringBuilder();
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(filename));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    content.append(line).append("\n");
+                }
+                reader.close();
+            } catch (IOException e) {
+                System.out.println("Error reading file: " + e.getMessage());
+            }
+            return content.toString();
+        }
+    }
+    
+    // Level 2: String Methods Demonstration
+    public static class StringMethodsDemo {
+        
+        public static void demonstrateStringMethods() {
+            System.out.println("=== LEVEL 2: STRING METHODS DEMONSTRATION ===");
+            
+            // Create sample strings
+            String originalString = "Hello, Java Programming!";
+            String anotherString = "  Welcome to IntelliJ IDEA  ";
+            
+            System.out.println("Original String: \"" + originalString + "\"");
+            System.out.println("Another String: \"" + anotherString + "\"");
+            System.out.println();
+            
+            // a. toUpperCase()
+            System.out.println("a. toUpperCase():");
+            System.out.println("   Original: \"" + originalString + "\"");
+            System.out.println("   Upper Case: \"" + originalString.toUpperCase() + "\"");
+            System.out.println();
+            
+            // b. toLowerCase()
+            System.out.println("b. toLowerCase():");
+            System.out.println("   Original: \"" + originalString + "\"");
+            System.out.println("   Lower Case: \"" + originalString.toLowerCase() + "\"");
+            System.out.println();
+            
+            // c. length()
+            System.out.println("c. length():");
+            System.out.println("   \"" + originalString + "\" length: " + originalString.length());
+            System.out.println("   \"" + anotherString + "\" length: " + anotherString.length());
+            System.out.println();
+            
+            // d. charAt(int index)
+            System.out.println("d. charAt(int index):");
+            System.out.println("   Characters at different positions in \"" + originalString + "\":");
+            for (int i = 0; i < Math.min(originalString.length(), 10); i++) {
+                System.out.println("   Index " + i + ": '" + originalString.charAt(i) + "'");
+            }
+            System.out.println();
+            
+            // e. substring()
+            System.out.println("e. substring():");
+            System.out.println("   Original: \"" + originalString + "\"");
+            System.out.println("   substring(7): \"" + originalString.substring(7) + "\"");
+            System.out.println("   substring(7, 11): \"" + originalString.substring(7, 11) + "\"");
+            System.out.println("   substring(0, 5): \"" + originalString.substring(0, 5) + "\"");
+            System.out.println();
+            
+            // Additional useful string methods
+            System.out.println("Additional String Methods:");
+            System.out.println("   trim(): \"" + anotherString.trim() + "\"");
+            System.out.println("   contains(\"Java\"): " + originalString.contains("Java"));
+            System.out.println("   replace('l', 'L'): \"" + originalString.replace('l', 'L') + "\"");
+            System.out.println("   startsWith(\"Hello\"): " + originalString.startsWith("Hello"));
+            System.out.println("   endsWith(\"!\"): " + originalString.endsWith("!"));
+            System.out.println();
+        }
+    }
+    
+    // Level 3: Sorting Algorithms
+    public static class SortingAlgorithms {
+        
+        // a. Selection Sort
+        public static void selectionSort(int[] arr) {
+            System.out.println("a. SELECTION SORT");
+            System.out.println("   Original array: " + Arrays.toString(arr));
+            
+            int n = arr.length;
+            int comparisons = 0;
+            int swaps = 0;
+            
+            for (int i = 0; i < n - 1; i++) {
+                int minIndex = i;
+                for (int j = i + 1; j < n; j++) {
+                    comparisons++;
+                    if (arr[j] < arr[minIndex]) {
+                        minIndex = j;
+                    }
+                }
+                // Swap the found minimum element with the first element
+                if (minIndex != i) {
+                    int temp = arr[minIndex];
+                    arr[minIndex] = arr[i];
+                    arr[i] = temp;
+                    swaps++;
+                }
+                System.out.println("   After iteration " + (i + 1) + ": " + Arrays.toString(arr));
+            }
+            
+            System.out.println("   Final sorted array: " + Arrays.toString(arr));
+            System.out.println("   Total comparisons: " + comparisons + ", Total swaps: " + swaps);
+            System.out.println();
+        }
+        
+        // b. Insertion Sort
+        public static void insertionSort(int[] arr) {
+            System.out.println("b. INSERTION SORT");
+            System.out.println("   Original array: " + Arrays.toString(arr));
+            
+            int n = arr.length;
+            int comparisons = 0;
+            int shifts = 0;
+            
+            for (int i = 1; i < n; i++) {
+                int key = arr[i];
+                int j = i - 1;
+                
+                // Move elements that are greater than key to one position ahead
+                while (j >= 0 && arr[j] > key) {
+                    comparisons++;
+                    arr[j + 1] = arr[j];
+                    j = j - 1;
+                    shifts++;
+                }
+                arr[j + 1] = key;
+                System.out.println("   After iteration " + i + ": " + Arrays.toString(arr));
+            }
+            
+            System.out.println("   Final sorted array: " + Arrays.toString(arr));
+            System.out.println("   Total comparisons: " + comparisons + ", Total shifts: " + shifts);
+            System.out.println();
+        }
+        
+        // c. Bubble Sort
+        public static void bubbleSort(int[] arr) {
+            System.out.println("c. BUBBLE SORT");
+            System.out.println("   Original array: " + Arrays.toString(arr));
+            
+            int n = arr.length;
+            int comparisons = 0;
+            int swaps = 0;
+            
+            for (int i = 0; i < n - 1; i++) {
+                boolean swapped = false;
+                for (int j = 0; j < n - i - 1; j++) {
+                    comparisons++;
+                    if (arr[j] > arr[j + 1]) {
+                        // Swap arr[j] and arr[j+1]
+                        int temp = arr[j];
+                        arr[j] = arr[j + 1];
+                        arr[j + 1] = temp;
+                        swapped = true;
+                        swaps++;
+                    }
+                }
+                System.out.println("   After iteration " + (i + 1) + ": " + Arrays.toString(arr));
+                // If no swapping occurred, array is already sorted
+                if (!swapped) break;
+            }
+            
+            System.out.println("   Final sorted array: " + Arrays.toString(arr));
+            System.out.println("   Total comparisons: " + comparisons + ", Total swaps: " + swaps);
+            System.out.println();
+        }
+        
+        public static void demonstrateSorting() {
+            System.out.println("=== LEVEL 3: SORTING ALGORITHMS ===");
+            
+            // Test arrays
+            int[] arr1 = {64, 25, 12, 22, 11};
+            int[] arr2 = {64, 25, 12, 22, 11};
+            int[] arr3 = {64, 25, 12, 22, 11};
+            
+            // Create copies for each sorting algorithm
+            selectionSort(Arrays.copyOf(arr1, arr1.length));
+            insertionSort(Arrays.copyOf(arr2, arr2.length));
+            bubbleSort(Arrays.copyOf(arr3, arr3.length));
+            
+            // Additional test with nearly sorted array
+            System.out.println("--- Performance on Nearly Sorted Array ---");
+            int[] nearlySorted = {1, 2, 3, 5, 4};
+            bubbleSort(Arrays.copyOf(nearlySorted, nearlySorted.length));
+        }
+    }
+    
+    // Main method to run all tasks
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        
+        System.out.println("🚀 STRING AND SORTING OPERATIONS PROGRAM");
+        System.out.println("========================================\n");
+        
+        // Level 1: String Search
+        String largeDocument = "Java is a high-level, class-based, object-oriented programming language that is " +
+                "designed to have as few implementation dependencies as possible. It is a general-purpose " +
+                "programming language intended to let programmers write once, run anywhere (WORA), meaning " +
+                "that compiled Java code can run on all platforms that support Java without the need to recompile. " +
+                "Java applications are typically compiled to bytecode that can run on any Java virtual machine (JVM) " +
+                "regardless of the underlying computer architecture. The syntax of Java is similar to C and C++, " +
+                "but has fewer low-level facilities than either of them. The Java runtime provides dynamic " +
+                "capabilities (such as reflection and runtime code modification) that are typically not available " +
+                "in traditional compiled languages.";
+        
+        DocumentSearcher.searchInDocument(largeDocument, "Java");
+        DocumentSearcher.searchInDocument(largeDocument, "programming");
+        DocumentSearcher.searchInDocument(largeDocument, "IntelliJ");
+        
+        // Level 2: String Methods
+        StringMethodsDemo.demonstrateStringMethods();
+        
+        // Level 3: Sorting Algorithms
+        SortingAlgorithms.demonstrateSorting();
+        
+        // Interactive part
+        System.out.println("=== INTERACTIVE DEMONSTRATION ===");
+        System.out.print("Enter a string to search in the document: ");
+        String userSearch = scanner.nextLine();
+        DocumentSearcher.searchInDocument(largeDocument, userSearch);
+        
+        System.out.print("Enter a string to demonstrate string methods: ");
+        String userString = scanner.nextLine();
+        if (!userString.trim().isEmpty()) {
+            System.out.println("Your string: \"" + userString + "\"");
+            System.out.println("Length: " + userString.length());
+            System.out.println("Uppercase: " + userString.toUpperCase());
+            System.out.println("Lowercase: " + userString.toLowerCase());
+            if (userString.length() > 0) {
+                System.out.println("First character: '" + userString.charAt(0) + "'");
+                System.out.println("Last character: '" + userString.charAt(userString.length() - 1) + "'");
+            }
+        }
+        
+        scanner.close();
+        System.out.println("\n✨ Program execution completed successfully!");
+    }
+}

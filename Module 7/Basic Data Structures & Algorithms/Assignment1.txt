@@ -1,0 +1,326 @@
+import java.util.*;
+
+// Custom Node class for Linked Lists
+class Node {
+    int data;
+    Node next;
+    Node prev;
+    
+    Node(int data) {
+        this.data = data;
+        this.next = null;
+        this.prev = null;
+    }
+}
+
+// Custom Linked List implementations
+class CustomLinkedList {
+    Node head;
+    
+    // Add node to the end
+    void add(int data) {
+        Node newNode = new Node(data);
+        if (head == null) {
+            head = newNode;
+            return;
+        }
+        Node temp = head;
+        while (temp.next != null) {
+            temp = temp.next;
+        }
+        temp.next = newNode;
+    }
+    
+    void display() {
+        Node temp = head;
+        while (temp != null) {
+            System.out.print(temp.data + " -> ");
+            temp = temp.next;
+        }
+        System.out.println("null");
+    }
+}
+
+class CustomDoublyLinkedList {
+    Node head;
+    Node tail;
+    
+    void add(int data) {
+        Node newNode = new Node(data);
+        if (head == null) {
+            head = tail = newNode;
+            return;
+        }
+        tail.next = newNode;
+        newNode.prev = tail;
+        tail = newNode;
+    }
+    
+    void displayForward() {
+        Node temp = head;
+        while (temp != null) {
+            System.out.print(temp.data + " <-> ");
+            temp = temp.next;
+        }
+        System.out.println("null");
+    }
+    
+    void displayBackward() {
+        Node temp = tail;
+        while (temp != null) {
+            System.out.print(temp.data + " <-> ");
+            temp = temp.prev;
+        }
+        System.out.println("null");
+    }
+}
+
+class CustomCircularLinkedList {
+    Node head;
+    Node tail;
+    
+    void add(int data) {
+        Node newNode = new Node(data);
+        if (head == null) {
+            head = tail = newNode;
+            head.next = head;
+            return;
+        }
+        tail.next = newNode;
+        newNode.next = head;
+        tail = newNode;
+    }
+    
+    void display() {
+        if (head == null) return;
+        
+        Node temp = head;
+        do {
+            System.out.print(temp.data + " -> ");
+            temp = temp.next;
+        } while (temp != head);
+        System.out.println("(back to head)");
+    }
+}
+
+Task 2: Two Stacks in One Array
+java
+
+class TwoStacks {
+    private int[] arr;
+    private int top1;
+    private int top2;
+    private int size;
+    
+    // Constructor
+    public TwoStacks(int capacity) {
+        this.size = capacity;
+        arr = new int[capacity];
+        top1 = -1;
+        top2 = capacity;
+    }
+    
+    // Push to first stack
+    public void push1(int x) {
+        if (top1 < top2 - 1) {
+            top1++;
+            arr[top1] = x;
+            System.out.println("Pushed " + x + " to Stack 1");
+        } else {
+            System.out.println("Stack Overflow! Cannot push " + x + " to Stack 1");
+        }
+    }
+    
+    // Push to second stack
+    public void push2(int x) {
+        if (top1 < top2 - 1) {
+            top2--;
+            arr[top2] = x;
+            System.out.println("Pushed " + x + " to Stack 2");
+        } else {
+            System.out.println("Stack Overflow! Cannot push " + x + " to Stack 2");
+        }
+    }
+    
+    // Pop from first stack
+    public int pop1() {
+        if (top1 >= 0) {
+            int x = arr[top1];
+            top1--;
+            System.out.println("Popped " + x + " from Stack 1");
+            return x;
+        } else {
+            System.out.println("Stack 1 Underflow!");
+            return -1;
+        }
+    }
+    
+    // Pop from second stack
+    public int pop2() {
+        if (top2 < size) {
+            int x = arr[top2];
+            top2++;
+            System.out.println("Popped " + x + " from Stack 2");
+            return x;
+        } else {
+            System.out.println("Stack 2 Underflow!");
+            return -1;
+        }
+    }
+    
+    // Display both stacks
+    public void displayStacks() {
+        System.out.print("Stack 1: ");
+        for (int i = 0; i <= top1; i++) {
+            System.out.print(arr[i] + " ");
+        }
+        System.out.println();
+        
+        System.out.print("Stack 2: ");
+        for (int i = size - 1; i >= top2; i--) {
+            System.out.print(arr[i] + " ");
+        }
+        System.out.println();
+    }
+}
+
+Task 3: Binary Search using Recursion
+java
+
+class BinarySearchRecursive {
+    
+    // Recursive binary search method
+    public static int binarySearch(int[] arr, int left, int right, int target) {
+        if (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            System.out.println("Searching in subarray: " + 
+                Arrays.toString(Arrays.copyOfRange(arr, left, right + 1)) +
+                ", Mid index: " + mid + ", Mid value: " + arr[mid]);
+            
+            // If element is present at middle
+            if (arr[mid] == target) {
+                return mid;
+            }
+            
+            // If element is smaller than mid, search left subarray
+            if (arr[mid] > target) {
+                return binarySearch(arr, left, mid - 1, target);
+            }
+            
+            // Else search right subarray
+            return binarySearch(arr, mid + 1, right, target);
+        }
+        
+        // Element not present
+        return -1;
+    }
+}
+
+Main Application Class
+java
+
+public class CollectionApplication {
+    public static void main(String[] args) {
+        System.out.println("=== JAVA COLLECTIONS APPLICATION ===\n");
+        
+        // Task 1: Working with Different Collections
+        System.out.println("1. WORKING WITH DIFFERENT COLLECTIONS");
+        System.out.println("=====================================");
+        
+        // Arrays
+        System.out.println("\nA. ARRAYS:");
+        int[] array = {10, 20, 30, 40, 50};
+        System.out.println("Original Array: " + Arrays.toString(array));
+        
+        // ArrayList
+        System.out.println("\nB. ARRAYLIST:");
+        ArrayList<Integer> arrayList = new ArrayList<>();
+        arrayList.add(5);
+        arrayList.add(15);
+        arrayList.add(25);
+        System.out.println("ArrayList: " + arrayList);
+        
+        // LinkedList
+        System.out.println("\nC. LINKED LIST:");
+        LinkedList<Integer> linkedList = new LinkedList<>();
+        linkedList.add(3);
+        linkedList.add(13);
+        linkedList.add(23);
+        System.out.println("LinkedList: " + linkedList);
+        
+        // Custom Linked List
+        System.out.println("\nD. CUSTOM SINGLY LINKED LIST:");
+        CustomLinkedList customList = new CustomLinkedList();
+        customList.add(1);
+        customList.add(2);
+        customList.add(3);
+        customList.display();
+        
+        // Custom Doubly Linked List
+        System.out.println("\nE. CUSTOM DOUBLY LINKED LIST:");
+        CustomDoublyLinkedList doublyList = new CustomDoublyLinkedList();
+        doublyList.add(10);
+        doublyList.add(20);
+        doublyList.add(30);
+        System.out.print("Forward: ");
+        doublyList.displayForward();
+        System.out.print("Backward: ");
+        doublyList.displayBackward();
+        
+        // Custom Circular Linked List
+        System.out.println("\nF. CUSTOM CIRCULAR LINKED LIST:");
+        CustomCircularLinkedList circularList = new CustomCircularLinkedList();
+        circularList.add(100);
+        circularList.add(200);
+        circularList.add(300);
+        circularList.display();
+        
+        // Task 2: Two Stacks in One Array
+        System.out.println("\n\n2. TWO STACKS IN ONE ARRAY");
+        System.out.println("=========================");
+        TwoStacks twoStacks = new TwoStacks(6);
+        
+        twoStacks.push1(10);
+        twoStacks.push2(60);
+        twoStacks.push1(20);
+        twoStacks.push2(50);
+        twoStacks.push1(30);
+        twoStacks.push2(40);
+        
+        twoStacks.displayStacks();
+        
+        twoStacks.pop1();
+        twoStacks.pop2();
+        twoStacks.displayStacks();
+        
+        // Task 3: Binary Search using Recursion
+        System.out.println("\n\n3. BINARY SEARCH USING RECURSION");
+        System.out.println("===============================");
+        int[] sortedArray = {2, 5, 8, 12, 16, 23, 38, 45, 67, 89};
+        int target = 23;
+        
+        System.out.println("Sorted Array: " + Arrays.toString(sortedArray));
+        System.out.println("Target to search: " + target);
+        
+        int result = BinarySearchRecursive.binarySearch(sortedArray, 0, sortedArray.length - 1, target);
+        
+        if (result != -1) {
+            System.out.println("\n✅ Element " + target + " found at index: " + result);
+        } else {
+            System.out.println("\n❌ Element " + target + " not found in the array");
+        }
+        
+        // Additional test case
+        System.out.println("\n--- Additional Test Case ---");
+        target = 100;
+        System.out.println("Target to search: " + target);
+        result = BinarySearchRecursive.binarySearch(sortedArray, 0, sortedArray.length - 1, target);
+        
+        if (result != -1) {
+            System.out.println("✅ Element " + target + " found at index: " + result);
+        } else {
+            System.out.println("❌ Element " + target + " not found in the array");
+        }
+    }
+}
